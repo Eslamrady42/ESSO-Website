@@ -9,8 +9,8 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Font Awesome - same icon library used by the Arabic services page -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css?v=2">
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
@@ -60,9 +60,14 @@
             text-align: center;
         }
 
-        .service-icon i {
+        /* Service icons: identical sizing and appearance to the Arabic services page */
+        .service-icon i,
+        .service-item .service-icon i.fas {
+            display: inline-block;
             font-size: 80px;
+            line-height: 1;
             color: var(--primary-light);
+            font-weight: 900;
         }
 
         .service-info h3 {
@@ -310,7 +315,7 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="js/main.js?v=29"></script>
+    <script src="js/main.js?v=30"></script>
     <script>
         function switchLanguage() {
             window.location.href = 'services.html';
