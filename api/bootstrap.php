@@ -32,7 +32,7 @@ define('OPENAI_TIMEOUT',max(20,(int)env_value('OPENAI_TIMEOUT','90')));
 define('GEMINI_API_KEY', env_value('GEMINI_API_KEY', ''));
 define('GEMINI_MODEL',env_value('GEMINI_MODEL','gemini-3.8-flash'));
 define('GEMINI_FALLBACK_MODELS',env_value('GEMINI_FALLBACK_MODELS','gemini-3.5-flash-lite,gemini-3.7-flash,gemini-3.5-flash,gemini-3.8-flash'));
-define('GEMINI_TIMEOUT',max(20,(int)env_value('GEMINI_TIMEOUT','120')));
+define('GEMINI_TIMEOUT',max(20,(int)env_value('GEMINI_TIMEOUT','240')));
 define('ADMIN_EMAIL',env_value('ADMIN_EMAIL','info25.esso@gmail.com'));
 define('ADMIN_KEY',env_value('ADMIN_KEY',''));
 define('UPLOAD_MAX_SIZE',max(1048576,(int)env_value('UPLOAD_MAX_SIZE','10485760')));
