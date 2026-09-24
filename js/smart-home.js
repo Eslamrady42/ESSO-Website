@@ -206,7 +206,8 @@
     const ai = r.ai || {};
     const token = r.project_token || '';
     const rooms = floors.reduce((n, f) => n + (f.rooms || []).length, 0);
-    const viewerUrl = token ? `project-viewer.html?token=${encodeURIComponent(token)}` : '';
+    const viewerFile = lang === 'ar' ? 'project-viewer.html' : 'project-viewer_en.html';
+    const viewerUrl = token ? `${viewerFile}?token=${encodeURIComponent(token)}` : '';
 
     return `<h2>${t.result}</h2>
       <div class="smart-result-head">
