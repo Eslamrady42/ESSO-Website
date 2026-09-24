@@ -461,10 +461,13 @@ if ($aiProvider === 'gemini') {
             ]],
             'generationConfig' => [
                 'responseMimeType' => 'application/json',
-                // Force Gemini to follow the exact ESSO analysis contract.
+                // Deep reasoning + a larger output budget are intentional for architectural reconstruction.
                 'responseJsonSchema' => $geminiSchema,
                 'temperature' => 0,
-                'maxOutputTokens' => 12000,
+                'maxOutputTokens' => 32768,
+                'thinkingConfig' => [
+                    'thinkingLevel' => 'high',
+                ],
             ],
         ];
 
