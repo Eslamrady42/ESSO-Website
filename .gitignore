@@ -1,21 +1,18 @@
-# ESSO Website — local/server secrets and runtime data
+# Secrets
 .env
 .env.*
 !.env.example
-
 # Runtime/private data
 /uploads/
 /storage/
 /logs/
 *.log
-
-# OS / editor
+# Local/editor files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-
-# Local backups
+# Archives
 *.zip
 *.rar
 *.7z
