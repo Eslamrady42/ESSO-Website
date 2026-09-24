@@ -1,82 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ESSO | Project Preview</title>
+<title>ESSO | معاينة المشروع</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/project-viewer.css">
 </head>
 <body>
 <header>
   <div class="container header-content">
-    <a href="index.html" class="logo">ESSO</a>
-    <nav><ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="smart-home_en.html" class="active">Smart Home</a></li>
+    <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+    <nav aria-label="التنقل الرئيسي"><ul>
+      <li><a href="index.html">الرئيسية</a></li>
+      <li><a href="smart-home.html" class="active">المنزل الذكي</a></li>
     </ul></nav>
   </div>
 </header>
-
 <main class="viewer-page">
   <div class="container">
-    <div id="viewerStatus" class="viewer-status">Loading protected preview…</div>
-
+    <div id="viewerStatus" class="viewer-status">جاري تحميل المعاينة المحمية…</div>
     <section id="viewer" class="viewer-shell" hidden>
       <div class="viewer-top">
         <div>
           <span class="viewer-kicker">ESSO SMART HOME DIGITAL MODEL</span>
-          <h1 id="projectTitle">Project Preview</h1>
-          <p id="projectSubtitle">Preliminary digital twin generated from the submitted floor plan.</p>
+          <h1 id="projectTitle">معاينة المشروع</h1>
+          <p id="projectSubtitle">نموذج رقمي أولي تم إنشاؤه من مخطط المشروع المرفوع.</p>
         </div>
         <span class="project-token" id="projectToken"></span>
       </div>
-
       <div class="viewer-toolbar">
         <div class="floor-tabs" id="floorTabs"></div>
         <div class="viewer-legend">
-          <span><i class="legend-dot room"></i> Room</span>
-          <span><i class="legend-dot review"></i> Review required</span>
-          <span><i class="legend-dot device"></i> Smart device</span>
+          <span><i class="legend-dot room"></i> غرفة</span>
+          <span><i class="legend-dot review"></i> تحتاج مراجعة</span>
+          <span><i class="legend-dot device"></i> جهاز ذكي</span>
         </div>
       </div>
-
       <section class="viewer-grid">
         <div class="viewer-panel">
-          <div class="viewer-panel-head"><h2>Home Assistant-style Floor Plan</h2><span id="planStatus"></span></div>
-          <div class="watermark">ESSO • PRELIMINARY • NOT FOR CONSTRUCTION</div>
+          <div class="viewer-panel-head"><h2>مخطط بأسلوب Home Assistant</h2><span id="planStatus"></span></div>
+          <div class="watermark">ESSO • أولي • غير معتمد للتنفيذ</div>
           <div id="floorPlan2d" class="floor-plan-2d"></div>
         </div>
-
         <div class="viewer-panel viewer-panel-3d">
-          <div class="viewer-panel-head"><h2>3D Digital Twin</h2><span class="viewer-hint">Drag to rotate • Scroll to zoom</span></div>
+          <div class="viewer-panel-head"><h2>النموذج الرقمي ثلاثي الأبعاد</h2><span class="viewer-hint">اسحب للدوران • مرر للتكبير</span></div>
           <div id="model3d" class="model-3d"></div>
           <div id="roomDetails" class="room-details" hidden></div>
         </div>
       </section>
-
       <section class="viewer-info">
         <div class="viewer-stat-grid" id="viewerStats"></div>
-
         <div class="viewer-two-col">
-          <div>
-            <h2>Room-by-room Device Plan</h2>
-            <div id="deviceTable"></div>
-          </div>
-          <div>
-            <h2>Preliminary BOQ</h2>
-            <div id="boqTable"></div>
-          </div>
+          <div><h2>خطة الأجهزة حسب الغرفة</h2><div id="deviceTable"></div></div>
+          <div><h2>BOQ مبدئي</h2><div id="boqTable"></div></div>
         </div>
-
         <div id="reviewBox" class="viewer-review" hidden></div>
-        <p class="viewer-note">This preview is protected. The displayed geometry is an engineering-assistance model generated from the uploaded plan and must be verified before construction.</p>
-        <a href="smart-home_en.html" class="btn btn-outline">Back to Smart Home</a>
+        <p class="viewer-note">هذه المعاينة محمية. الشكل المعروض هو نموذج مساعد هندسي تم إنشاؤه من المخطط المرفوع، ويجب التحقق منه قبل التنفيذ.</p>
+        <a href="smart-home.html" class="btn btn-outline">العودة إلى المنزل الذكي</a>
       </section>
     </section>
   </div>
 </main>
-
-<script src="js/project-viewer.js?v=25final" defer></script>
+<script src="js/project-viewer.js?v=26" defer></script>
 </body>
 </html>
