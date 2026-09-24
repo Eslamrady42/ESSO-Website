@@ -674,7 +674,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       '<polygon points=\''+ps(env)+'\' class="plan-envelope"></polygon>' +
       wallLines.map(w=>'<polyline points=\''+ps(w)+'\' class="plan-wall"></polyline>').join('') +
       roomEls+doorEls+winEls+
-      '<div class="plan-svg-note"></div></svg><div class="plan-scale-note">'+esc(tr('Normalized preliminary geometry — source drawing remains authoritative.','هندسة أولية بإحداثيات نسبية — الرسم الأصلي هو المرجع الأساسي.'))+'</div></div>';
+      '</svg><div class="plan-scale-note">'+esc(tr('Normalized preliminary geometry — source drawing remains authoritative.','هندسة أولية بإحداثيات نسبية — الرسم الأصلي هو المرجع الأساسي.'))+'</div></div>';
 
     el.querySelectorAll('[data-room-id]').forEach(node=>node.addEventListener('click',()=>{
       state.selectedRoom=node.dataset.roomId;
