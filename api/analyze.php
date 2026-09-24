@@ -150,92 +150,126 @@ $schema = [
     'additionalProperties' => false,
     'properties' => [
         'project' => [
-            'type' => 'object',
-            'additionalProperties' => false,
+            'type' => 'object', 'additionalProperties' => false,
             'properties' => [
-                'total_area_sqm' => ['type' => ['number', 'null']],
-                'floors_count' => ['type' => 'integer'],
+                'total_area_sqm' => ['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                'floors_count' => ['type'=>'integer'],
+                'orientation' => ['type'=>'string'],
+                'confidence' => ['type'=>'number'],
             ],
-            'required' => ['total_area_sqm', 'floors_count'],
+            'required' => ['total_area_sqm','floors_count','orientation','confidence'],
         ],
         'floors' => [
-            'type' => 'array',
-            'items' => [
-                'type' => 'object',
-                'additionalProperties' => false,
-                'properties' => [
-                    'floor_number' => ['type' => 'integer'],
-                    'width_m' => ['type' => ['number', 'null']],
-                    'depth_m' => ['type' => ['number', 'null']],
-                    'rooms' => [
-                        'type' => 'array',
-                        'items' => [
-                            'type' => 'object',
-                            'additionalProperties' => false,
-                            'properties' => [
-                                'name' => ['type' => 'string'],
-                                'type' => ['type' => 'string'],
-                                'area_sqm' => ['type' => ['number', 'null']],
-                                'dimensions' => [
-                                    'type' => 'object',
-                                    'additionalProperties' => false,
-                                    'properties' => [
-                                        'width' => ['type' => ['number', 'null']],
-                                        'length' => ['type' => ['number', 'null']],
-                                    ],
-                                    'required' => ['width', 'length'],
+            'type'=>'array', 'items'=>[
+                'type'=>'object','additionalProperties'=>false,
+                'properties'=>[
+                    'floor_number'=>['type'=>'integer'],
+                    'width_m'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                    'depth_m'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                    'envelope'=>[
+                        'type'=>'object','additionalProperties'=>false,
+                        'properties'=>[
+                            'points'=>['type'=>'array','items'=>['type'=>'object','additionalProperties'=>false,'properties'=>['x'=>['type'=>'number'],'y'=>['type'=>'number']],'required'=>['x','y']]],
+                            'confidence'=>['type'=>'number'], 'needs_review'=>['type'=>'boolean'],
+                        ],
+                        'required'=>['points','confidence','needs_review'],
+                    ],
+                    'walls'=>[
+                        'type'=>'array','items'=>[
+                            'type'=>'object','additionalProperties'=>false,
+                            'properties'=>[
+                                'id'=>['type'=>'string'],'type'=>['type'=>'string'],
+                                'points'=>['type'=>'array','items'=>['type'=>'object','additionalProperties'=>false,'properties'=>['x'=>['type'=>'number'],'y'=>['type'=>'number']],'required'=>['x','y']]],
+                                'thickness_m'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                'confidence'=>['type'=>'number'],'needs_review'=>['type'=>'boolean'],
+                            ],
+                            'required'=>['id','type','points','thickness_m','confidence','needs_review'],
+                        ],
+                    ],
+                    'rooms'=>[
+                        'type'=>'array','items'=>[
+                            'type'=>'object','additionalProperties'=>false,
+                            'properties'=>[
+                                'name'=>['type'=>'string'],'type'=>['type'=>'string'],
+                                'area_sqm'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                'dimensions'=>[
+                                    'type'=>'object','additionalProperties'=>false,
+                                    'properties'=>['width'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],'length'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]]],
+                                    'required'=>['width','length'],
                                 ],
-                                'doors' => ['type' => 'integer'],
-                                'windows' => ['type' => 'integer'],
-                                'geometry' => [
-                                    'type' => 'object',
-                                    'additionalProperties' => false,
-                                    'properties' => [
-                                        'x' => ['type' => ['number', 'null']],
-                                        'y' => ['type' => ['number', 'null']],
-                                        'width' => ['type' => ['number', 'null']],
-                                        'depth' => ['type' => ['number', 'null']],
-                                        'points' => [
-                                            'type' => 'array',
-                                            'items' => [
-                                                'type' => 'object',
-                                                'additionalProperties' => false,
-                                                'properties' => [
-                                                    'x' => ['type' => ['number', 'null']],
-                                                    'y' => ['type' => ['number', 'null']],
-                                                ],
-                                                'required' => ['x', 'y'],
-                                            ],
+                                'doors'=>['type'=>'integer'],'windows'=>['type'=>'integer'],
+                                'door_details'=>[
+                                    'type'=>'array','items'=>[
+                                        'type'=>'object','additionalProperties'=>false,
+                                        'properties'=>[
+                                            'x'=>['type'=>'number'],'y'=>['type'=>'number'],
+                                            'width_pct'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                            'wall'=>['type'=>'string'],'swing'=>['type'=>'string'],'confidence'=>['type'=>'number'],
                                         ],
+                                        'required'=>['x','y','width_pct','wall','swing','confidence'],
                                     ],
-                                    'required' => ['x', 'y', 'width', 'depth', 'points'],
                                 ],
-                                'confidence' => ['type' => 'number'],
-                                'status' => ['type' => 'string'],
-                                'needs_review' => ['type' => 'boolean'],
+                                'window_details'=>[
+                                    'type'=>'array','items'=>[
+                                        'type'=>'object','additionalProperties'=>false,
+                                        'properties'=>[
+                                            'x'=>['type'=>'number'],'y'=>['type'=>'number'],
+                                            'width_pct'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                            'wall'=>['type'=>'string'],'confidence'=>['type'=>'number'],
+                                        ],
+                                        'required'=>['x','y','width_pct','wall','confidence'],
+                                    ],
+                                ],
+                                'geometry'=>[
+                                    'type'=>'object','additionalProperties'=>false,
+                                    'properties'=>[
+                                        'x'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                        'y'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                        'width'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                        'depth'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                        'points'=>['type'=>'array','items'=>['type'=>'object','additionalProperties'=>false,'properties'=>['x'=>['type'=>'number'],'y'=>['type'=>'number']],'required'=>['x','y']]],
+                                    ],
+                                    'required'=>['x','y','width','depth','points'],
+                                ],
+                                'confidence'=>['type'=>'number'],'status'=>['type'=>'string'],'needs_review'=>['type'=>'boolean'],
+                                'evidence'=>[
+                                    'type'=>'object','additionalProperties'=>false,
+                                    'properties'=>[
+                                        'label_detected'=>['type'=>'boolean'],'label_text'=>['type'=>'string'],
+                                        'boundary_detected'=>['type'=>'boolean'],'visual_context'=>['type'=>'string'],
+                                        'fixtures_detected'=>['type'=>'array','items'=>['type'=>'string']],
+                                        'doors_detected'=>['type'=>'integer'],'windows_detected'=>['type'=>'integer'],
+                                        'adjacency_evidence'=>['type'=>'array','items'=>['type'=>'string']],
+                                    ],
+                                    'required'=>['label_detected','label_text','boundary_detected','visual_context','fixtures_detected','doors_detected','windows_detected','adjacency_evidence'],
+                                ],
+                                'adjacent_rooms'=>['type'=>'array','items'=>['type'=>'string']],
                             ],
-                            'required' => [
-                                'name', 'type', 'area_sqm', 'dimensions', 'doors', 'windows',
-                                'geometry', 'confidence', 'status', 'needs_review'
+                            'required'=>['name','type','area_sqm','dimensions','doors','windows','door_details','window_details','geometry','confidence','status','needs_review','evidence','adjacent_rooms'],
+                        ],
+                    ],
+                    'stairs'=>[
+                        'type'=>'array','items'=>[
+                            'type'=>'object','additionalProperties'=>false,
+                            'properties'=>[
+                                'x'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                'y'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                'width_pct'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                'depth_pct'=>['anyOf'=>[['type'=>'number'],['type'=>'null']]],
+                                'direction'=>['type'=>'string'],'confidence'=>['type'=>'number'],'needs_review'=>['type'=>'boolean'],
                             ],
+                            'required'=>['x','y','width_pct','depth_pct','direction','confidence','needs_review'],
                         ],
                     ],
                 ],
-                'required' => ['floor_number', 'width_m', 'depth_m', 'rooms'],
+                'required'=>['floor_number','width_m','depth_m','envelope','walls','rooms','stairs'],
             ],
         ],
-        'analysis_notes' => [
-            'type' => 'array',
-            'items' => ['type' => 'string'],
-        ],
-        'needs_review' => [
-            'type' => 'array',
-            'items' => ['type' => 'string'],
-        ],
+        'analysis_notes'=>['type'=>'array','items'=>['type'=>'string']],
+        'needs_review'=>['type'=>'array','items'=>['type'=>'string']],
     ],
-    'required' => ['project', 'floors', 'analysis_notes', 'needs_review'],
+    'required'=>['project','floors','analysis_notes','needs_review'],
 ];
-
 
 /*
  * Gemini's currently-served v1beta endpoint can reject some JSON Schema
