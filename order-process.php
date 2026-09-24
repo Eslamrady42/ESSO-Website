@@ -1,83 +1,101 @@
 <?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // استلام وتنقية البيانات
-    $name = htmlspecialchars(trim($_POST['name'] ?? ''));
-    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
-    $phone = htmlspecialchars(trim($_POST['phone'] ?? ''));
-    $address = htmlspecialchars(trim($_POST['address'] ?? ''));
-    $payment = htmlspecialchars(trim($_POST['payment'] ?? ''));
-    $cart_data = $_POST['cart_data'] ?? '';
+declare(strict_types=1);
 
-    // التحقق من الحقول المطلوبة
-    if (empty($name) || empty($email) || empty($phone) || empty($address) || empty($cart_data)) {
-        die("جميع الحقول المطلوبة يجب ملؤها");
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("البريد الإلكتروني غير صحيح");
-    }
-
-    // فك بيانات السلة (JSON)
-    $cart_items = json_decode($cart_data, true);
-    if (!is_array($cart_items) || empty($cart_items)) {
-        die("بيانات السلة غير صحيحة");
-    }
-
-    // منع حقن الرؤوس في البريد الإلكتروني
-    if (preg_match("/[\r\n]/", $email)) {
-        die("بريد إلكتروني غير صالح");
-    }
-
-    // إعداد البريد
-    $to = "info25.esso@gmail.com"; // بريد الإدارة
-    $subject = "طلب جديد من موقع ESSO - " . $name;
-    
-    // بناء نص الرسالة
-    $body = "تم استلام طلب جديد:\n\n";
-    $body .= "الاسم: $name\n";
-    $body .= "البريد الإلكتروني: $email\n";
-    $body .= "الهاتف: $phone\n";
-    $body .= "العنوان: $address\n";
-    $body .= "طريقة الدفع: $payment\n\n";
-    $body .= "تفاصيل الطلب:\n";
-    
-    $total = 0;
-    foreach ($cart_items as $item) {
-        $item_total = $item['price'] * $item['quantity'];
-        $total += $item_total;
-        $body .= "- " . $item['name'] . " (الكمية: " . $item['quantity'] . ") - EGP " . number_format($item_total) . "\n";
-    }
-    $body .= "\nالإجمالي الكلي: EGP " . number_format($total);
-
-    // إرسال نسخة للعميل (اختياري)
-    $to_client = $email;
-    $subject_client = "تأكيد استلام طلبك من ESSO";
-    $body_client = "عزيزي $name،\n\nشكراً لتسوقك من ESSO. لقد تم استلام طلبك وسيتم التواصل معك قريباً.\n\nتفاصيل الطلب:\n";
-    foreach ($cart_items as $item) {
-        $body_client .= "- " . $item['name'] . " (الكمية: " . $item['quantity'] . ") - EGP " . number_format($item['price'] * $item['quantity']) . "\n";
-    }
-    $body_client .= "\nالإجمالي: EGP " . number_format($total) . "\n\n";
-    $body_client .= "مع تحيات فريق ESSO.";
-
-    $headers = "From: info25.esso@gmail.com\r\n";
-    $headers .= "Reply-To: info25.esso@gmail.com\r\n";
-
-    // إرسال البريد للإدارة
-    $mail_sent = mail($to, $subject, $body, $headers);
-    
-    // إرسال البريد للعميل (اختياري)
-    $client_mail_sent = mail($to_client, $subject_client, $body_client, $headers);
-
-    if ($mail_sent) {
-        // التوجيه إلى صفحة الشكر
-        header("Location: thank-you.html");
-        exit();
-    } else {
-        // في حالة فشل الإرسال
-        echo "عذراً، حدث خطأ في إرسال الطلب. يرجى المحاولة لاحقاً أو الاتصال بنا مباشرة.";
-    }
-} else {
-    // إذا تم الوصول للملف مباشرة دون POST
-    header("Location: shop.html");
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+    header('Location: shop.html');
     exit();
 }
+
+$lang = (($_POST['lang'] ?? 'ar') === 'en') ? 'en' : 'ar';
+$homeRedirect = $lang === 'en' ? 'shop_en.html' : 'shop.html';
+$thankYouRedirect = $lang === 'en' ? 'thank-you_en.html' : 'thank-you.html';
+
+// Sanitize and validate submitted data.
+$name = htmlspecialchars(trim((string)($_POST['name'] ?? '')), ENT_QUOTES, 'UTF-8');
+$emailRaw = trim((string)($_POST['email'] ?? ''));
+$email = filter_var($emailRaw, FILTER_SANITIZE_EMAIL);
+$phone = htmlspecialchars(trim((string)($_POST['phone'] ?? '')), ENT_QUOTES, 'UTF-8');
+$address = htmlspecialchars(trim((string)($_POST['address'] ?? '')), ENT_QUOTES, 'UTF-8');
+$payment = htmlspecialchars(trim((string)($_POST['payment'] ?? '')), ENT_QUOTES, 'UTF-8');
+$cartData = (string)($_POST['cart_data'] ?? '');
+
+if ($name === '' || $email === '' || $phone === '' || $address === '' || $cartData === '') {
+    die($lang === 'en' ? 'Please complete all required fields.' : 'جميع الحقول المطلوبة يجب ملؤها');
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n]/', $email)) {
+    die($lang === 'en' ? 'Please enter a valid email address.' : 'البريد الإلكتروني غير صحيح');
+}
+
+$cartItems = json_decode($cartData, true);
+if (!is_array($cartItems) || empty($cartItems)) {
+    die($lang === 'en' ? 'Invalid cart data.' : 'بيانات السلة غير صحيحة');
+}
+
+$to = 'info25.esso@gmail.com';
+$subject = ($lang === 'en' ? 'New order from ESSO website - ' : 'طلب جديد من موقع ESSO - ') . $name;
+
+$lines = [];
+$lines[] = $lang === 'en' ? 'A new order has been received:' : 'تم استلام طلب جديد:';
+$lines[] = '';
+$lines[] = ($lang === 'en' ? 'Name: ' : 'الاسم: ') . $name;
+$lines[] = ($lang === 'en' ? 'Email: ' : 'البريد الإلكتروني: ') . $email;
+$lines[] = ($lang === 'en' ? 'Phone: ' : 'الهاتف: ') . $phone;
+$lines[] = ($lang === 'en' ? 'Address: ' : 'العنوان: ') . $address;
+$lines[] = ($lang === 'en' ? 'Payment method: ' : 'طريقة الدفع: ') . $payment;
+$lines[] = '';
+$lines[] = $lang === 'en' ? 'Order details:' : 'تفاصيل الطلب:';
+
+$total = 0.0;
+
+foreach ($cartItems as $item) {
+    $itemName = (string)($item['name'] ?? '');
+    $quantity = (int)($item['quantity'] ?? 0);
+    $price = (float)($item['price'] ?? 0);
+
+    if ($itemName === '' || $quantity < 1 || $price < 0) {
+        continue;
+    }
+
+    $itemTotal = $price * $quantity;
+    $total += $itemTotal;
+
+    $lines[] = '- ' . $itemName . ' (' . ($lang === 'en' ? 'Qty: ' : 'الكمية: ') . $quantity . ') - EGP ' . number_format($itemTotal);
+}
+
+$lines[] = '';
+$lines[] = ($lang === 'en' ? 'Grand total: EGP ' : 'الإجمالي الكلي: EGP ') . number_format($total);
+
+$body = implode("\n", $lines);
+
+$customerSubject = $lang === 'en' ? 'Order confirmation from ESSO' : 'تأكيد استلام طلبك من ESSO';
+$customerLines = [];
+$customerLines[] = $lang === 'en' ? 'Hello ' . $name . ',' : 'عزيزي ' . $name . '،';
+$customerLines[] = '';
+$customerLines[] = $lang === 'en'
+    ? 'Thank you for shopping with ESSO. We have received your order and will contact you shortly.'
+    : 'شكراً لتسوقك من ESSO. لقد تم استلام طلبك وسيتم التواصل معك قريباً.';
+$customerLines[] = '';
+$customerLines[] = $lang === 'en' ? 'Order total: EGP ' . number_format($total) : 'إجمالي الطلب: EGP ' . number_format($total);
+$customerLines[] = '';
+$customerLines[] = $lang === 'en' ? 'ESSO Team' : 'مع تحيات فريق ESSO.';
+
+$customerBody = implode("\n", $customerLines);
+
+// Use the site mailbox as From and the customer email as Reply-To.
+$headers = "From: info25.esso@gmail.com\r\n";
+$headers .= "Reply-To: " . $email . "\r\n";
+$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+$mailSent = mail($to, $subject, $body, $headers);
+@mail($email, $customerSubject, $customerBody, $headers);
+
+if ($mailSent) {
+    header('Location: ' . $thankYouRedirect);
+    exit();
+}
+
+echo $lang === 'en'
+    ? 'Sorry, there was an error sending your order. Please contact us directly.'
+    : 'عذراً، حدث خطأ في إرسال الطلب. يرجى الاتصال بنا مباشرة.';
 ?>
