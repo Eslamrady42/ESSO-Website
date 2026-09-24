@@ -144,7 +144,7 @@
     const f = floors.find(x => Number(x.floor_number) === Number(state.selectedFloor));
     let rooms = currentRooms();
     if (!rooms.length) {
-      el.innerHTML = `<div class="empty-state">${tr(tr('No reliable rooms were detected for this floor.', 'لم يتم اكتشاف غرف موثوقة في هذا الدور.'), 'لم يتم اكتشاف غرف موثوقة في هذا الدور.')}</div>`;
+      el.innerHTML = `<div class="empty-state">${tr('No reliable rooms were detected for this floor.', 'لم يتم اكتشاف غرف موثوقة في هذا الدور.')}</div>`;
       return;
     }
 
@@ -188,8 +188,8 @@
   function renderTables() {
     const devices = state.model.devices || [];
     const boq = state.model.boq || [];
-    $('deviceTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Room','الغرفة')}</th><th>${tr('Device','الجهاز')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Category','الفئة')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${devices.length ? devices.map(d => `<tr><td>${esc(d.room)}</td><td>${esc(d.type)}</td><td>${esc(d.qty)}</td><td>${esc(d.category)}</td><td>${d.required === 'required' ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : '<tr><td colspan="5">No devices generated.</td></tr>'}</tbody></table></div>`;
-    $('boqTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Category','الفئة')}</th><th>${tr('Item','البند')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Rooms','الغرف')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${boq.length ? boq.map(b => `<tr><td>${esc(b.category)}</td><td>${esc(b.item)}</td><td>${esc(b.quantity)}</td><td>${esc((b.rooms || []).join(', ') || tr('Project','المشروع'))}</td><td>${b.required ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : '<tr><td colspan="5">No BOQ generated.</td></tr>'}</tbody></table></div>`;
+    $('deviceTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Room','الغرفة')}</th><th>${tr('Device','الجهاز')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Category','الفئة')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${devices.length ? devices.map(d => `<tr><td>${esc(d.room)}</td><td>${esc(d.type)}</td><td>${esc(d.qty)}</td><td>${esc(d.category)}</td><td>${d.required === 'required' ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : `<tr><td colspan="5">${tr('No devices generated.','لم يتم إنشاء أجهزة.')}</td></tr>`}</tbody></table></div>`;
+    $('boqTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Category','الفئة')}</th><th>${tr('Item','البند')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Rooms','الغرف')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${boq.length ? boq.map(b => `<tr><td>${esc(b.category)}</td><td>${esc(b.item)}</td><td>${esc(b.quantity)}</td><td>${esc((b.rooms || []).join(', ') || tr('Project','المشروع'))}</td><td>${b.required ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : `<tr><td colspan="5">${tr('No BOQ generated.','لم يتم إنشاء BOQ.')}</td></tr>`}</tbody></table></div>`;
   }
 
   function renderReview() {
@@ -198,7 +198,7 @@
     const box = $('reviewBox');
     if (!notes.length) { box.hidden = true; return; }
     box.hidden = false;
-    box.innerHTML = `<strong>Engineering review required</strong><ul>${notes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+    box.innerHTML = `<strong>${tr('Engineering review required','تحتاج هذه النتائج إلى مراجعة هندسية')}</strong><ul>${notes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
   }
 
   function init3D() {
