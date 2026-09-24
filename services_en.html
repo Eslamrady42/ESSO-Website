@@ -1,1 +1,320 @@
-<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>ESSO | Services</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"><link rel="stylesheet" href="css/style.css"></head><body><header><div class="container header-content"><a href="index_en.html" class="logo">ESSO</a><nav><ul><li><a href="index_en.html">Home</a></li><li><a href="about_en.html">About Us</a></li><li><a href="services_en.html" class="active">Services</a></li><li><a href="smart-home_en.html">Smart Home</a></li><li><a href="projects_en.html">Projects</a></li><li><a href="shop_en.html">Shop</a></li><li><a href="contact_en.html">Contact Us</a></li></ul></nav><div class="header-cta"><a href="cart_en.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cart-count">0</span></a><button type="button" onclick="switchLanguage()" class="btn btn-outline">العربية</button><a href="contact_en.html" class="btn btn-outline">Request Consultation</a></div></div></header><section class="page-header"><div class="container"><h1>Our Services</h1><p>Integrated engineering, smart home and technology solutions for residential and commercial projects.</p></div></section><section class="services-page"><div class="container"><div class="service-item"><div class="service-icon"><i class="fas fa-drafting-compass"></i></div><div class="service-info"><h3>Engineering Design</h3><p>Integrated architectural, technical and engineering design with practical project coordination.</p></div></div><div class="service-item"><div class="service-icon"><i class="fas fa-microchip"></i></div><div class="service-info"><h3>Smart Building Solutions</h3><p>Automation, control, monitoring and systems integration for smarter spaces.</p></div></div><div class="service-item"><div class="service-icon"><i class="fas fa-house-signal"></i></div><div class="service-info"><h3>AI Smart Home Design</h3><p>Upload a floor plan, analyze it with AI, generate device recommendations and a preliminary BOQ, then convert the concept into an engineering request.</p><a href="smart-home_en.html" class="btn btn-primary">Start Smart Home Design</a></div></div><div class="service-item"><div class="service-icon"><i class="fas fa-chart-line"></i></div><div class="service-info"><h3>Project & Management Consulting</h3><p>Feasibility studies, technical coordination and professional project management support.</p></div></div><div class="service-item"><div class="service-icon"><i class="fas fa-solar-panel"></i></div><div class="service-info"><h3>Energy & Sustainability</h3><p>Technology-led energy visibility and solutions that support efficient building operation.</p></div></div></div></section><footer><div class="container footer-content"><div class="footer-about"><h3>ESSO</h3><p>Engineering Smart Solutions Office — smart engineering solutions for connected, efficient projects.</p></div><div class="footer-links"><h4>Quick Links</h4><ul><li><a href="index_en.html">Home</a></li><li><a href="about_en.html">About Us</a></li><li><a href="services_en.html">Services</a></li><li><a href="smart-home_en.html">Smart Home</a></li><li><a href="projects_en.html">Projects</a></li><li><a href="shop_en.html">Shop</a></li><li><a href="contact_en.html">Contact Us</a></li></ul></div><div class="footer-contact"><h4>Contact Us</h4><p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p><p><i class="fas fa-phone"></i> +20 10 9555 6967</p><p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p></div></div><div class="copyright"><p>© 2026 ESSO - All rights reserved</p></div></footer><script src="js/main.js"></script><script>function switchLanguage(){location.href='services.html';}</script></body></html>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | Our Services</title>
+    <meta name="description" content="ESSO provides integrated engineering, smart building, project management, sustainability, and MEP design services for residential and commercial projects.">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .services-page {
+            padding: 80px 0;
+        }
+
+        .service-item {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            background: var(--gray-light);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+            align-items: center;
+        }
+
+        .service-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .service-icon {
+            text-align: center;
+        }
+
+        .service-icon i {
+            font-size: 80px;
+            color: var(--primary-light);
+        }
+
+        .service-info h3 {
+            font-size: 28px;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+
+        .service-info p {
+            color: var(--gray);
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        .service-info ul {
+            list-style: disc;
+            padding-left: 20px;
+            color: var(--gray);
+        }
+
+        .service-info ul li {
+            margin-bottom: 5px;
+        }
+
+        .service-info .btn {
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .service-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .service-info ul {
+                text-align: left;
+                padding-left: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER ===== -->
+    <header>
+        <div class="container header-content">
+            <a href="index_en.html" class="logo" aria-label="ESSO">ESSO</a>
+
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index_en.html">Home</a></li>
+                    <li><a href="about_en.html">About Us</a></li>
+                    <li><a href="services_en.html" class="active">Services</a></li>
+                    <li><a href="smart-home_en.html">Smart Home</a></li>
+                    <li><a href="projects_en.html">Projects</a></li>
+                    <li><a href="shop_en.html">Shop</a></li>
+                    <li><a href="contact_en.html">Contact Us</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart_en.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="Switch to Arabic">العربية</button>
+                <a href="contact_en.html" class="btn btn-outline">Request Consultation</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== PAGE HEADER ===== -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Our Services</h1>
+            <p>We provide a comprehensive range of engineering and consulting services to meet your project needs.</p>
+        </div>
+    </section>
+
+    <!-- ===== SERVICES ===== -->
+    <section class="services-page">
+        <div class="container">
+
+            <!-- Service 1 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-drafting-compass"></i>
+                </div>
+                <div class="service-info">
+                    <h3>Engineering Design</h3>
+                    <p>
+                        We provide integrated architectural and structural design using modern design tools
+                        such as AutoCAD, Revit, and SketchUp, while considering aesthetic, functional, and economic requirements.
+                    </p>
+                    <ul>
+                        <li>Architectural design (plans, elevations, and construction drawings)</li>
+                        <li>Structural design (concrete and steel structures)</li>
+                        <li>Building Information Modeling (BIM)</li>
+                        <li>Interior design and site planning</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Service 2 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <div class="service-info">
+                    <h3>Smart Solutions</h3>
+                    <p>
+                        We provide smart building and facility control systems, including Home Automation and BMS,
+                        to improve comfort, safety, monitoring, and energy efficiency.
+                    </p>
+                    <ul>
+                        <li>Lighting and HVAC control systems</li>
+                        <li>Security and monitoring systems (CCTV and alarm systems)</li>
+                        <li>Energy management systems</li>
+                        <li>System integration through IoT</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Service 3 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="service-info">
+                    <h3>Management Consulting & Project Management</h3>
+                    <p>
+                        We support efficient project delivery through specialized management and consulting services,
+                        from feasibility studies through final handover.
+                    </p>
+                    <ul>
+                        <li>Feasibility studies</li>
+                        <li>Project management (PMO)</li>
+                        <li>Execution supervision</li>
+                        <li>Project assessment and design review</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Service 4 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-solar-panel"></i>
+                </div>
+                <div class="service-info">
+                    <h3>Renewable Energy & Sustainability</h3>
+                    <p>
+                        We provide renewable energy solutions, including solar and wind energy,
+                        and support sustainable building approaches aligned with environmental standards such as LEED and ESTIDAMA.
+                    </p>
+                    <ul>
+                        <li>Design, supply, and installation of solar energy systems</li>
+                        <li>Energy efficiency studies</li>
+                        <li>LEED and sustainability support</li>
+                        <li>Waste management and recycling solutions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Service 5 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-hard-hat"></i>
+                </div>
+                <div class="service-info">
+                    <h3>Engineering Supervision & Execution</h3>
+                    <p>
+                        We supervise engineering project execution to help ensure quality, compliance with approved designs
+                        and specifications, accurate follow-up, and regular progress reporting.
+                    </p>
+                    <ul>
+                        <li>Engineering and architectural execution supervision</li>
+                        <li>Quality control and material testing</li>
+                        <li>Contract and contractor management</li>
+                        <li>Progress reporting</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Service 6 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="service-info">
+                    <h3>Mechanical & Electrical Design</h3>
+                    <p>
+                        We provide integrated mechanical, electrical, and plumbing (MEP) designs
+                        using modern engineering tools and technologies.
+                    </p>
+                    <ul>
+                        <li>Heating, ventilation, and air conditioning systems (HVAC)</li>
+                        <li>Electrical systems (power, lighting, and panels)</li>
+                        <li>Plumbing and drainage systems</li>
+                        <li>Fire protection systems</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office — smart engineering solutions that elevate your projects toward the future.</p>
+                <div class="social">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index_en.html">Home</a></li>
+                    <li><a href="about_en.html">About Us</a></li>
+                    <li><a href="services_en.html">Services</a></li>
+                    <li><a href="smart-home_en.html">Smart Home</a></li>
+                    <li><a href="projects_en.html">Projects</a></li>
+                    <li><a href="shop_en.html">Shop</a></li>
+                    <li><a href="contact_en.html">Contact Us</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p>
+                <p><i class="fas fa-phone"></i> +20 10 9555 6967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+
+        <div class="copyright">
+            <p>© 2026 ESSO - All rights reserved</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js?v=29"></script>
+    <script>
+        function switchLanguage() {
+            window.location.href = 'services.html';
+        }
+    </script>
+</body>
+</html>
