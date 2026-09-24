@@ -1,7 +1,10 @@
 (() => {
   'use strict';
 
-  const token = new URLSearchParams(location.search).get('token');
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token');
+  const isAr = document.documentElement.lang === 'ar';
+  const tr = (en, ar) => isAr ? ar : en;
   const $ = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -24,7 +27,7 @@
   };
 
   if (!token) {
-    $('viewerStatus').textContent = 'Project token missing.';
+    $('viewerStatus').textContent = tr('Project token missing.', 'بيانات المشروع مفقودة.');
     return;
   }
 
@@ -32,7 +35,7 @@
     try {
       const r = await fetch('api/project.php?token=' + encodeURIComponent(token), { credentials: 'same-origin', cache: 'no-store' });
       const j = await r.json();
-      if (!r.ok || !j.success) throw new Error(j.message || 'Project not found');
+      if (!r.ok || !j.success) throw new Error(j.message || tr('Project not found', 'المشروع غير موجود'));
 
       state.project = j.project;
       state.model = state.project.digital_model || {};
@@ -41,9 +44,9 @@
 
       $('viewerStatus').hidden = true;
       $('viewer').hidden = false;
-      $('projectToken').textContent = 'PROJECT ' + state.project.token;
-      $('projectTitle').textContent = (state.model.project?.type || 'Smart Home') + ' — Digital Preview';
-      $('projectSubtitle').textContent = `${state.model.rooms?.length || 0} rooms • ${state.model.devices?.length || 0} smart items`;
+      $('projectToken').textContent = tr('PROJECT ', 'المشروع ') + state.project.token;
+      $('projectTitle').textContent = (state.model.project?.type || tr('Smart Home', 'المنزل الذكي')) + (isAr ? ' — معاينة رقمية' : ' — Digital Preview');
+      $('projectSubtitle').textContent = `${state.model.rooms?.length || 0} ${tr('rooms', 'غرف')} • ${state.model.devices?.length || 0} ${tr('smart items', 'أجهزة ذكية')}`;
 
       renderFloors();
       renderStats();
@@ -52,7 +55,7 @@
       render2D();
       init3D();
     } catch (e) {
-      $('viewerStatus').textContent = e.message || 'Unable to load preview.';
+      $('viewerStatus').textContent = e.message || tr('Unable to load preview.', 'تعذر تحميل المعاينة.');
     }
   }
 
@@ -63,7 +66,7 @@
   function renderFloors() {
     const tabs = $('floorTabs');
     const floors = state.model.floors || [];
-    tabs.innerHTML = floors.map(f => `<button type="button" class="floor-tab ${Number(f.floor_number) === Number(state.selectedFloor) ? 'active' : ''}" data-floor="${f.floor_number}">Floor ${f.floor_number}</button>`).join('');
+    tabs.innerHTML = floors.map(f => `<button type="button" class="floor-tab ${Number(f.floor_number) === Number(state.selectedFloor) ? 'active' : ''}" data-floor="${f.floor_number}">${tr('Floor', 'الدور')} ${f.floor_number}</button>`).join('');
     tabs.querySelectorAll('.floor-tab').forEach(b => b.addEventListener('click', () => {
       state.selectedFloor = Number(b.dataset.floor);
       state.selectedRoom = null;
@@ -79,11 +82,11 @@
     const reviewRooms = rooms.filter(r => r.needs_review).length;
     const totalArea = state.model.project?.area_sqm ?? state.project.project?.area ?? 'TBD';
     $('viewerStats').innerHTML = [
-      ['Area', totalArea !== 'TBD' ? totalArea + ' m²' : 'TBD'],
-      ['Floors', (state.model.floors || []).length],
-      ['Rooms', rooms.length],
-      ['Devices', devices.length],
-      ['Rooms needing review', reviewRooms],
+      [tr('Area', 'المساحة'), totalArea !== 'TBD' ? totalArea + ' m²' : 'TBD'],
+      [tr('Floors', 'الأدوار'), (state.model.floors || []).length],
+      [tr('Rooms', 'الغرف'), rooms.length],
+      [tr('Devices', 'الأجهزة'), devices.length],
+      [tr('Rooms needing review', 'غرف تحتاج مراجعة'), reviewRooms],
     ].map(([a,b]) => `<div class="viewer-stat"><span>${esc(a)}</span><strong>${esc(b)}</strong></div>`).join('');
   }
 
@@ -141,7 +144,7 @@
     const f = floors.find(x => Number(x.floor_number) === Number(state.selectedFloor));
     let rooms = currentRooms();
     if (!rooms.length) {
-      el.innerHTML = '<div class="empty-state">No reliable rooms were detected for this floor.</div>';
+      el.innerHTML = `<div class="empty-state">${tr(tr('No reliable rooms were detected for this floor.', 'لم يتم اكتشاف غرف موثوقة في هذا الدور.'), 'لم يتم اكتشاف غرف موثوقة في هذا الدور.')}</div>`;
       return;
     }
 
@@ -179,14 +182,14 @@
     if (!room) { box.hidden = true; return; }
     const devices = (state.model.devices || []).filter(d => d.room === room.name);
     box.hidden = false;
-    box.innerHTML = `<strong>${esc(room.name)}</strong><span>${esc(room.type || 'Room')}</span><span>${room.area_sqm ? esc(room.area_sqm)+' m²' : 'Area TBD'}</span><div>${devices.map(d => `${esc(d.type)} × ${esc(d.qty)}`).join('<br>') || 'No device data'}</div>`;
+    box.innerHTML = `<strong>${esc(room.name)}</strong><span>${esc(room.type || tr('Room', 'غرفة'))}</span><span>${room.area_sqm ? esc(room.area_sqm)+' m²' : tr('Area TBD', 'المساحة غير محددة')}</span><div>${devices.map(d => `${esc(d.type)} × ${esc(d.qty)}`).join('<br>') || tr('No device data', 'لا توجد بيانات أجهزة')}</div>`;
   }
 
   function renderTables() {
     const devices = state.model.devices || [];
     const boq = state.model.boq || [];
-    $('deviceTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>Room</th><th>Device</th><th>Qty</th><th>Category</th><th>Required</th></tr></thead><tbody>${devices.length ? devices.map(d => `<tr><td>${esc(d.room)}</td><td>${esc(d.type)}</td><td>${esc(d.qty)}</td><td>${esc(d.category)}</td><td>${d.required === 'required' ? 'Yes' : 'Recommended'}</td></tr>`).join('') : '<tr><td colspan="5">No devices generated.</td></tr>'}</tbody></table></div>`;
-    $('boqTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>Category</th><th>Item</th><th>Qty</th><th>Rooms</th><th>Required</th></tr></thead><tbody>${boq.length ? boq.map(b => `<tr><td>${esc(b.category)}</td><td>${esc(b.item)}</td><td>${esc(b.quantity)}</td><td>${esc((b.rooms || []).join(', ') || 'Project')}</td><td>${b.required ? 'Yes' : 'Recommended'}</td></tr>`).join('') : '<tr><td colspan="5">No BOQ generated.</td></tr>'}</tbody></table></div>`;
+    $('deviceTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Room','الغرفة')}</th><th>${tr('Device','الجهاز')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Category','الفئة')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${devices.length ? devices.map(d => `<tr><td>${esc(d.room)}</td><td>${esc(d.type)}</td><td>${esc(d.qty)}</td><td>${esc(d.category)}</td><td>${d.required === 'required' ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : '<tr><td colspan="5">No devices generated.</td></tr>'}</tbody></table></div>`;
+    $('boqTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Category','الفئة')}</th><th>${tr('Item','البند')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Rooms','الغرف')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${boq.length ? boq.map(b => `<tr><td>${esc(b.category)}</td><td>${esc(b.item)}</td><td>${esc(b.quantity)}</td><td>${esc((b.rooms || []).join(', ') || tr('Project','المشروع'))}</td><td>${b.required ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : '<tr><td colspan="5">No BOQ generated.</td></tr>'}</tbody></table></div>`;
   }
 
   function renderReview() {
@@ -436,8 +439,8 @@
     const slab=[[-fw/2,-.08,-fd/2],[fw/2,-.08,-fd/2],[fw/2,-.08,fd/2],[-fw/2,-.08,fd/2]].map(p=>project(worldToCamera(p[0],p[1],p[2]),state._cx,state._cy,state._scale));
     const slabPath=new Path2D();slabPath.moveTo(slab[0].x,slab[0].y);slab.slice(1).forEach(q=>slabPath.lineTo(q.x,q.y));slabPath.closePath();state.ctx.fillStyle='#c9b8a4';state.ctx.fill(slabPath);state.ctx.strokeStyle='#817366';state.ctx.stroke(slabPath);
     repairedRooms.slice().sort((a,b)=>Number(a.y||0)-Number(b.y||0)).forEach(r=>drawExtrudedRoom(r,fw,fd));
-    state.ctx.fillStyle='#4c5960';state.ctx.font='600 12px Arial';state.ctx.textAlign='left';state.ctx.fillText(`Floor ${state.selectedFloor} • ${repairedRooms.length} rooms`,14,22);
-    state.ctx.fillStyle='#65747b';state.ctx.font='11px Arial';state.ctx.fillText('Architectural cutaway • furnished schematic • preliminary digital twin',14,40);
+    state.ctx.fillStyle='#4c5960';state.ctx.font='600 12px Arial';state.ctx.textAlign='left';state.ctx.fillText(`${tr('Floor', 'الدور')} ${state.selectedFloor} • ${repairedRooms.length} ${tr('rooms', 'غرف')}`,14,22);
+    state.ctx.fillStyle='#65747b';state.ctx.font='11px Arial';state.ctx.fillText(tr('Architectural cutaway • furnished schematic • preliminary digital twin', 'مخطط معماري مجسم • تأثيث تخطيطي • نموذج رقمي أولي'),14,40);
   }
 
   function pointInPolygon(pt, poly) {
