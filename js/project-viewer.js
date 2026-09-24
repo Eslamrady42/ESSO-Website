@@ -203,28 +203,81 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     return !occupied.some(o => footprintOverlaps(candidate,o,0.07));
   }
 
-  function place(room, w, d, occupied, angles) {
+  function openingPoints(room) {
+    const out=[];
+    const list=(room.door_details||[]).concat(room.window_details||[]);
+    for(const o of list){
+      if(!Number.isFinite(Number(o.x))||!Number.isFinite(Number(o.y))) continue;
+      out.push({
+        x:Number(o.x)/100*state.floorW-state.floorW/2,
+        z:Number(o.y)/100*state.floorD-state.floorD/2,
+        width:Number(o.width_pct||5)/100*Math.min(state.floorW,state.floorD)
+      });
+    }
+    return out;
+  }
+
+  function nearOpening(room,cx,cz,clearance) {
+    return openingPoints(room).some(o => Math.hypot(cx-o.x,cz-o.z) < Math.max(.35,clearance+o.width*.35));
+  }
+
+  function roomWallAnchors(room) {
+    const poly=polygon2D(room);
+    const anchors=[];
+    if(poly.length<2) return anchors;
+    let cx=0,cz=0;
+    poly.forEach(p=>{cx+=p.x;cz+=p.z;});
+    cx/=poly.length;cz/=poly.length;
+    for(let i=0;i<poly.length;i++){
+      const a=poly[i],b=poly[(i+1)%poly.length];
+      const dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz);
+      if(len<.15) continue;
+      const nx=-dz/len,nz=dx/len;
+      const midX=(a.x+b.x)/2,midZ=(a.z+b.z)/2;
+      const toCx=cx-midX,toCz=cz-midZ;
+      const sign=(nx*toCx+nz*toCz)>0?-1:1;
+      anchors.push({x:midX+nx*sign*.24,z:midZ+nz*sign*.24,angle:Math.atan2(dz,dx),len:len});
+    }
+    return anchors.sort((a,b)=>b.len-a.len);
+  }
+
+  function place(room,w,d,occupied,angles,preferWall=true) {
     const poly=polygon2D(room), b=bounds(poly);
-    if(poly.length<3 || b.width<=0 || b.depth<=0) return null;
-    const candidates=[
+    if(poly.length<3||b.width<=0||b.depth<=0) return null;
+    const wallAnchors=preferWall?roomWallAnchors(room):[];
+    const centerCandidates=[
       [b.cx,b.cz],
-      [b.minX+b.width*.22,b.minZ+b.depth*.22],
-      [b.minX+b.width*.78,b.minZ+b.depth*.22],
-      [b.minX+b.width*.22,b.minZ+b.depth*.78],
-      [b.minX+b.width*.78,b.minZ+b.depth*.78],
+      [b.minX+b.width*.28,b.minZ+b.depth*.28],
+      [b.minX+b.width*.72,b.minZ+b.depth*.28],
+      [b.minX+b.width*.28,b.minZ+b.depth*.72],
+      [b.minX+b.width*.72,b.minZ+b.depth*.72],
       [b.cx,b.minZ+b.depth*.22],
       [b.cx,b.minZ+b.depth*.78],
-      [b.minX+b.width*.25,b.cz],
-      [b.minX+b.width*.75,b.cz]
+      [b.minX+b.width*.22,b.cz],
+      [b.minX+b.width*.78,b.cz]
     ];
+    const candidates=[];
+    if(wallAnchors.length){
+      for(const a of wallAnchors){
+        const inwardX=Math.cos(a.angle+Math.PI/2), inwardZ=Math.sin(a.angle+Math.PI/2);
+        for(const t of [.15,.30,.48,.62,.78]){
+          const x=a.x+inwardX*Math.max(.22, d/2+.16);
+          const z=a.z+inwardZ*Math.max(.22, d/2+.16);
+          candidates.push([x,z,a.angle+Math.PI/2]);
+        }
+      }
+    }
+    centerCandidates.forEach(p=>candidates.push([p[0],p[1],null]));
     const scales=[1,.94,.88,.82,.76,.70,.64];
-    const angs=angles && angles.length?angles:[0,Math.PI/2];
+    const angs=angles&&angles.length?angles:[0,Math.PI/2];
     for(const sc of scales){
       for(const a of angs){
-        const ww=w*sc, dd=d*sc;
+        const ww=w*sc,dd=d*sc;
         for(const p of candidates){
-          const c={x:p[0],z:p[1],w:ww,d:dd,a:a};
-          if(insideFootprint(poly,c.x,c.z,c.w,c.d,c.a,.10) && occupiedOk(c,occupied)) return c;
+          const angle=p[2]!==null?p[2]:a;
+          const cc={x:p[0],z:p[1],w:ww,d:dd,a:angle};
+          if(nearOpening(room,cc.x,cc.z,Math.max(.45,dd*.35))) continue;
+          if(insideFootprint(poly,cc.x,cc.z,cc.w,cc.d,cc.a,.12)&&occupiedOk(cc,occupied)) return cc;
         }
       }
     }
@@ -232,8 +285,10 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   }
 
   function orientForRoom(room) {
+    const anchors=roomWallAnchors(room);
+    if(anchors.length) return anchors.slice(0,3).map(a=>a.angle+Math.PI/2);
     const b=bounds(polygon2D(room));
-    return b.width >= b.depth ? [0,Math.PI/2] : [Math.PI/2,0];
+    return b.width>=b.depth?[0,Math.PI/2]:[Math.PI/2,0];
   }
 
   function addCarpet(g, w, d) {
@@ -242,7 +297,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
   function makeBed(room,g,occ) {
     const b=bounds(polygon2D(room));
-    const p=place(room,Math.min(2.15,Math.max(1.45,b.width*.58)),Math.min(2.25,Math.max(1.75,b.depth*.50)),occ,orientForRoom(room));
+    const p=place(room,Math.min(2.15,Math.max(1.45,b.width*.58)),Math.min(2.25,Math.max(1.75,b.depth*.50)),occ,orientForRoom(room),true);
     if(!p) return;
     occ.push(p);
     const bed=group();
@@ -308,6 +363,15 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       add(tg,cyl(.03,.37,COLORS.metal,12,.42,.5),.34,.19,.20);
       tg.position.set(tp.x,.03,tp.z); tg.rotation.y=tp.a; g.add(tg);
     }
+
+    const tv=place(room,Math.min(2.2,b.width*.46),.34,occ,[0,Math.PI/2],true);
+    if(tv){
+      occ.push(tv);
+      const vg=group();
+      add(vg,box(tv.w,.62,tv.d,COLORS.woodDark,.67),0,.33,0);
+      add(vg,box(tv.w*.88,.85,.055,COLORS.dark,.32,.1),0,1.08,-tv.d/2-.04);
+      tv && (vg.position.set(tv.x,.03,tv.z),vg.rotation.y=tv.a,g.add(vg));
+    }
   }
 
   function makeDining(room,g,occ) {
@@ -339,7 +403,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   function makeKitchen(room,g,occ) {
     const poly=polygon2D(room), b=bounds(poly), horizontal=b.width>=b.depth;
     const cw=Math.min(horizontal?b.width:b.depth,4.2), cd=.58;
-    const cp=place(room,cw,cd,occ,horizontal?[0,Math.PI/2]:[Math.PI/2,0]);
+    const cp=place(room,cw,cd,occ,horizontal?[0,Math.PI/2]:[Math.PI/2,0],true);
     if(cp){
       occ.push(cp);
       const cg=group();
@@ -482,21 +546,22 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   function renderWalls(g) {
     if(!state.showWalls)return;
     const edges=new Map();
-
     const addEdge=(a,b,type,thickness)=>{
       const k=edgeKey(a,b);
       if(edges.has(k))return;
-      edges.set(k,{a:a,b:b,type:type||'interior',thickness:thickness});
+      edges.set(k,{a:a,b:b,type:type||'interior',thickness:thickness,mesh:null});
     };
 
     (state.floor?.walls||[]).forEach(w=>{
       const pts=Array.isArray(w.points)?w.points:[];
       if(pts.length>=2){
-        addEdge(
-          {x:Number(pts[0].x)/100*state.floorW-state.floorW/2,z:Number(pts[0].y)/100*state.floorD-state.floorD/2},
-          {x:Number(pts[1].x)/100*state.floorW-state.floorW/2,z:Number(pts[1].y)/100*state.floorD-state.floorD/2},
-          w.type,w.thickness_m
-        );
+        for(let i=0;i<pts.length-1;i++){
+          addEdge(
+            {x:Number(pts[i].x)/100*state.floorW-state.floorW/2,z:Number(pts[i].y)/100*state.floorD-state.floorD/2},
+            {x:Number(pts[i+1].x)/100*state.floorW-state.floorW/2,z:Number(pts[i+1].y)/100*state.floorD-state.floorD/2},
+            w.type,w.thickness_m
+          );
+        }
       }
     });
 
@@ -508,7 +573,33 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       if(p.length>=2)for(let i=0;i<p.length;i++)addEdge(p[i],p[(i+1)%p.length],'interior',null);
     });
 
-    edges.forEach(e=>addWallSegment(e.a,e.b,2.65,e.thickness||.13,e.type==='exterior'?COLORS.exterior:COLORS.wall,g));
+    edges.forEach(e=>{
+      const isExterior=e.type==='exterior';
+      const m=addWallSegment;
+      addWallSegment(e.a,e.b,2.65,e.thickness||.13,isExterior?COLORS.exterior:COLORS.wall,g);
+      const wall=g.children[g.children.length-1];
+      if(wall){
+        wall.userData.exterior=isExterior;
+        wall.userData.a=e.a; wall.userData.b=e.b;
+        wall.userData.baseVisible=true;
+      }
+    });
+  }
+
+  function updateCutaway() {
+    if(!state.root||!state.camera)return;
+    const cam=state.camera.position;
+    state.root.traverse(obj=>{
+      if(!obj.isMesh||!obj.userData.exterior||!obj.userData.a)return;
+      const a=obj.userData.a,b=obj.userData.b;
+      const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;
+      const dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz)||1;
+      const nx=-dz/len,nz=dx/len;
+      const toCam={x:cam.x-mx,z:cam.z-mz};
+      const facing=nx*toCam.x+nz*toCam.z>0.18*Math.hypot(toCam.x,toCam.z);
+      const dist=Math.hypot(toCam.x,toCam.z);
+      obj.visible=state.showWalls && !(facing && dist < Math.max(state.floorW,state.floorD)*3.0);
+    });
   }
 
   function addOpeningMarkers(room,g) {
@@ -530,20 +621,42 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     const poly=polygon2D(room), b=bounds(poly);
     const ds=(state.model.devices||[]).filter(d=>d.room===room.name);
     if(!ds.length||poly.length<3)return;
-    let idx=0;
+    let index=0;
     ds.forEach(dev=>{
       const qty=Math.max(1,Math.min(12,Number(dev.qty||1)));
+      const type=String(dev.type||'').toLowerCase();
       for(let i=0;i<qty;i++){
+        let x=b.cx,z=b.cz,y=2.48;
+        if(type.includes('smoke')){
+          y=2.62;
+          const m=cyl(.10,.035,0xd9dede,24,.35,.2);m.position.set(x,y,z);m.userData.roomId=room.id;g.add(m);
+          continue;
+        }
+        if(type.includes('ir hvac')||type.includes('remote')){
+          y=1.65;
+          x=b.minX+b.width*.85;z=b.cz;
+          if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
+          const m=box(.16,.22,.055,0xe7e7e5,.38,.1);m.position.set(x,y,z);m.userData.roomId=room.id;g.add(m);
+          continue;
+        }
+        if(type.includes('water leak')){
+          y=.10;
+          x=b.cx;z=b.minZ+b.depth*.78;
+        } else if(type.includes('gas')){
+          y=.75;x=b.cx;z=b.minZ+b.depth*.22;
+        } else if(type.includes('lighting switch')||type.includes('switch')){
+          y=1.25;
+          x=b.minX+b.width*.08;z=b.cz;
+          if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
+        } else {
+          const cols=Math.min(4,qty);
+          x=b.minX+b.width*(.30+(i%cols)*(.40/Math.max(1,cols-1)));
+          z=b.minZ+b.depth*(.30+Math.floor(i/cols)*.36);
+          if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
+        }
         const col=dev.category==='Safety'?0xd47d64:(dev.category==='Lighting'?0xe2b44f:COLORS.accent);
-        const cols=Math.min(4,qty);
-        let x=b.minX+b.width*(.30+(i%cols)*(.40/Math.max(1,cols-1)));
-        let z=b.minZ+b.depth*(.30+Math.floor(i/cols)*.36);
-        if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
         const m=sphere(.075,col,.42,.18);
-        m.position.set(x,2.58,z);
-        m.userData.roomId=room.id;
-        g.add(m);
-        idx++;
+        m.position.set(x,y,z);m.userData.roomId=room.id;g.add(m);index++;
       }
     });
   }
@@ -603,7 +716,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     const b=rootBounds(), size=b.getSize(new THREE.Vector3()), center=b.getCenter(new THREE.Vector3());
     const maxDim=Math.max(size.x,size.y,size.z,.1);
     const dist=maxDim*1.55;
-    state.camera.position.set(center.x+dist*.90,center.y+dist*.92,center.z+dist*.90);
+    // Start from a front/quarter architectural cutaway angle so the facade facing the viewer is open.
+    state.camera.position.set(center.x+dist*.82,center.y+dist*.74,center.z+dist*1.04);
     state.camera.near=Math.max(.01,dist/200);
     state.camera.far=Math.max(100,dist*30);
     state.camera.updateProjectionMatrix();
@@ -837,6 +951,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   function animate() {
     requestAnimationFrame(animate);
     if(state.controls)state.controls.update();
+    updateCutaway();
     if(state.renderer&&state.scene&&state.camera)state.renderer.render(state.scene,state.camera);
   }
 
