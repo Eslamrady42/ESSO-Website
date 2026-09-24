@@ -203,7 +203,7 @@
 
   function init3D() {
     const host = $('model3d');
-    host.innerHTML = '<canvas id="esso3dCanvas" aria-label="Interactive 3D digital twin"></canvas><div class="model3d-hint">Interactive 3D preview • drag to rotate • scroll to zoom</div>';
+    host.innerHTML = `<canvas id="esso3dCanvas" aria-label="${tr('Interactive 3D digital twin', 'النموذج الرقمي ثلاثي الأبعاد التفاعلي')}"></canvas><div class="model3d-hint">${tr('Interactive 3D preview • drag to rotate • scroll to zoom', 'معاينة ثلاثية الأبعاد تفاعلية • اسحب للدوران • مرر للتكبير')}</div>`;
     state.canvas = $('esso3dCanvas');
     state.ctx = state.canvas.getContext('2d');
     if (!state.ctx) {
