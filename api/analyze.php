@@ -504,7 +504,7 @@ if ($aiProvider === 'gemini') {
         if ($candidateResponse !== false && $candidateCode >= 200 && $candidateCode < 300 && trim($candidateText) !== '') {
             $draftText = trim($candidateText);
             $reviewPrompt = $instructions
-                .."\n\nIMPORTANT: This is a second verification pass. Re-inspect the ORIGINAL attached floor plan visually and verify the draft below against the drawing. Correct room boundaries, labels, walls, doors, windows, envelope, stairs and adjacency where the draft does not match the source. Do NOT redesign or repack the building. Preserve correct geometry. Return ONLY the corrected JSON object matching the schema.\n\nDRAFT FROM FIRST PASS:\n"
+                ."\n\nIMPORTANT: This is a second verification pass. Re-inspect the ORIGINAL attached floor plan visually and verify the draft below against the drawing. Correct room boundaries, labels, walls, doors, windows, envelope, stairs and adjacency where the draft does not match the source. Do NOT redesign or repack the building. Preserve correct geometry. Return ONLY the corrected JSON object matching the schema.\n\nDRAFT FROM FIRST PASS:\n"
                 .$draftText
                 ."\n\nReturn ONLY the corrected JSON object.";
             $reviewParts = [['text' => $reviewPrompt]];
