@@ -108,29 +108,34 @@ function rate_limit(string $key, int $max, int $period): bool
 
 function normalize_room_type(string $type, string $name = ''): string
 {
-    $v = strtolower(trim($type.' '.$name));
+    $raw = trim($type.' '.$name);
+    $v = strtolower(preg_replace('/[^a-z0-9\x{0600}-\x{06ff}]+/u',' ', $raw) ?: $raw);
+    $v = preg_replace('/\s+/',' ',trim($v)) ?: trim($v);
     $map = [
-        'reception' => ['reception', 'salon', 'majlis', 'living reception', 'صالون', 'ريسبشن', 'استقبال'],
-        'living_room' => ['living_room', 'living room', 'lounge', 'living', 'معيشة', 'ليفينج'],
-        'master_bedroom' => ['master_bedroom', 'master bedroom', 'master', 'ماستر', 'غرفة نوم رئيسية'],
-        'bedroom' => ['bedroom', 'bed room', 'guest room', 'kids room', 'غرفة نوم', 'غرفة الأطفال', 'نوم'],
-        'kitchen' => ['kitchen', 'مطبخ'],
-        'bathroom' => ['bathroom', 'toilet', 'wc', 'shower', 'حمام', 'دورة مياه'],
-        'corridor' => ['corridor', 'hallway', 'hall', 'ممر', 'طرقة'],
-        'office' => ['office', 'study', 'workspace', 'مكتب', 'دراسة'],
-        'dining' => ['dining', 'dining room', 'سفرة', 'طعام'],
-        'laundry' => ['laundry', 'غسيل'],
-        'utility' => ['utility', 'service', 'مخزن خدمات', 'خدمات'],
+        'reception'=>['reception','salon','saloon','majlis','living reception','reception area','ريسبشن','ريسبسيون','صالون','مجلس','استقبال'],
+        'living_room'=>['living room','living','lounge','family living','living area','معيشة','ليفينج','غرفة المعيشة','معيشة عائلية'],
+        'master_bedroom'=>['master bedroom','master bed','mbr','bedroom master','master','غرفة النوم الرئيسية','غرفة نوم رئيسية','ماستر','غرفة الماستر'],
+        'bedroom'=>['bedroom','bed room','guest room','guest','kids room','kids','children room','children','br','غرفة نوم','نوم','غرفة أطفال','أطفال','غرفة ضيوف','ضيوف'],
+        'kitchen'=>['kitchen','kit','مطبخ'],
+        'bathroom'=>['bathroom','bath','toilet','wc','w c','shower','ensuite','en suite','حمام','دورة مياه','شاور'],
+        'corridor'=>['corridor','hallway','hall','passage','landing','ممر','طرقة','هول'],
+        'office'=>['office','study','workspace','مكتب','دراسة'],
+        'dining'=>['dining room','dining area','dining','سفرة','غرفة السفرة','طعام'],
+        'laundry'=>['laundry room','laundry','wash','غسيل','غرفة غسيل','مغسلة ملابس'],
+        'utility'=>['utility','service room','service','store','storage','مخزن','خدمات','غرفة خدمات','مستودع'],
     ];
-
-    foreach ($map as $canonical => $terms) {
-        foreach ($terms as $term) {
-            if ($term !== '' && strpos($v, strtolower($term)) !== false) {
-                return $canonical;
-            }
+    foreach($map as $canonical=>$terms){
+        foreach($terms as $term){
+            $needle=strtolower($term);
+            if($needle!=='' && preg_match('/(^| )'.preg_quote($needle,'/').'($| )/u',$v)) return $canonical;
         }
     }
-
+    foreach($map as $canonical=>$terms){
+        foreach($terms as $term){
+            $needle=strtolower($term);
+            if(mb_strlen($needle)>=5 && strpos($v,$needle)!==false) return $canonical;
+        }
+    }
     return 'other';
 }
 
@@ -234,151 +239,124 @@ function esso_http_post_json(string $url, array $payload, array $headers = [], i
     ];
 }
 
+function normalize_geometry_points($points,int $maxPoints=120): array
+{
+    $out=[]; if(!is_array($points)) return $out;
+    foreach(array_slice($points,0,$maxPoints) as $pt){
+        if(!is_array($pt)||!is_numeric($pt['x']??null)||!is_numeric($pt['y']??null)) continue;
+        $out[]=['x'=>max(0.0,min(100.0,(float)$pt['x'])),'y'=>max(0.0,min(100.0,(float)$pt['y']))];
+    }
+    return count($out)>=3?$out:[];
+}
+
+function polygon_area_percent(array $points): float
+{
+    if(count($points)<3) return 0.0;
+    $s=0.0;$n=count($points);
+    for($i=0;$i<$n;$i++){ $j=($i+1)%$n; $s+=((float)$points[$i]['x']*(float)$points[$j]['y'])-((float)$points[$j]['x']*(float)$points[$i]['y']); }
+    return abs($s)/2.0;
+}
+
+function polygon_bbox(array $points): array
+{
+    if(!$points) return ['x'=>null,'y'=>null,'width'=>null,'depth'=>null];
+    $xs=array_column($points,'x');$ys=array_column($points,'y');
+    $minX=min($xs);$maxX=max($xs);$minY=min($ys);$maxY=max($ys);
+    return ['x'=>$minX,'y'=>$minY,'width'=>max(0.0,$maxX-$minX),'depth'=>max(0.0,$maxY-$minY)];
+}
+
+function normalize_opening_details($items,string $kind): array
+{
+    $out=[]; if(!is_array($items)) return $out;
+    foreach(array_slice($items,0,100) as $item){
+        if(!is_array($item)||!is_numeric($item['x']??null)||!is_numeric($item['y']??null)) continue;
+        $wall=clean_string($item['wall']??'unknown',20);
+        if(!in_array($wall,['north','south','east','west','unknown'],true)) $wall='unknown';
+        $row=['x'=>max(0,min(100,(float)$item['x'])),'y'=>max(0,min(100,(float)$item['y'])),'width_pct'=>is_numeric($item['width_pct']??null)?max(.1,min(100,(float)$item['width_pct'])):null,'wall'=>$wall,'confidence'=>is_numeric($item['confidence']??null)?max(0,min(100,(float)$item['confidence'])):0];
+        if($kind==='door'){ $s=clean_string($item['swing']??'unknown',20); if(!in_array($s,['inward','outward','sliding','unknown'],true)) $s='unknown'; $row['swing']=$s; }
+        $out[]=$row;
+    }
+    return $out;
+}
+
+function normalize_wall_rows($items): array
+{
+    $out=[]; if(!is_array($items)) return $out;
+    foreach(array_slice($items,0,300) as $i=>$wall){
+        if(!is_array($wall)) continue; $pts=normalize_geometry_points($wall['points']??[],8); if(count($pts)<2) continue;
+        $type=clean_string($wall['type']??'interior',30); if(!in_array($type,['exterior','interior','partition','unknown'],true)) $type='unknown';
+        $out[]=['id'=>clean_string($wall['id']??('w'.($i+1)),40),'type'=>$type,'points'=>$pts,'thickness_m'=>is_numeric($wall['thickness_m']??null)&&$wall['thickness_m']>0?min(2.0,(float)$wall['thickness_m']):null,'confidence'=>is_numeric($wall['confidence']??null)?max(0,min(100,(float)$wall['confidence'])):0,'needs_review'=>(bool)($wall['needs_review']??false)];
+    }
+    return $out;
+}
+
 function validate_analysis(array $data): array
 {
-    $o = [
-        'project' => [
-            'total_area_sqm' => null,
-            'floors_count' => 0,
-        ],
-        'floors' => [],
-        'analysis_notes' => [],
-        'needs_review' => [],
-    ];
+    $o=['project'=>['total_area_sqm'=>null,'floors_count'=>0,'orientation'=>'unknown','confidence'=>0],'floors'=>[],'analysis_notes'=>[],'needs_review'=>[]];
+    $p=is_array($data['project']??null)?$data['project']:[];
+    $o['project']['total_area_sqm']=is_numeric($p['total_area_sqm']??null)&&$p['total_area_sqm']>0&&$p['total_area_sqm']<=100000?(float)$p['total_area_sqm']:null;
+    $o['project']['floors_count']=is_numeric($p['floors_count']??null)&&$p['floors_count']>=1&&$p['floors_count']<=100?(int)$p['floors_count']:0;
+    $o['project']['orientation']=clean_string($p['orientation']??'unknown',40)||'unknown';
+    $o['project']['confidence']=is_numeric($p['confidence']??null)?max(0,min(100,(float)$p['confidence'])):0;
 
-    $p = is_array($data['project'] ?? null) ? $data['project'] : [];
-    $a = $p['total_area_sqm'] ?? null;
-    $f = $p['floors_count'] ?? null;
-
-    $o['project']['total_area_sqm'] = is_numeric($a) && $a > 0 && $a <= 100000 ? (float)$a : null;
-    $o['project']['floors_count'] = is_numeric($f) && $f >= 1 && $f <= 100 ? (int)$f : 0;
-
-    foreach (array_slice(is_array($data['floors'] ?? null) ? $data['floors'] : [], 0, 100) as $fi => $floor) {
-        if (!is_array($floor)) {
-            continue;
+    foreach(array_slice(is_array($data['floors']??null)?$data['floors']:[],0,100) as $fi=>$floor){
+        if(!is_array($floor)) continue;
+        $no=is_numeric($floor['floor_number']??null)?max(1,min(100,(int)$floor['floor_number'])):$fi+1;
+        $fw=is_numeric($floor['width_m']??null)&&$floor['width_m']>0?min(500,(float)$floor['width_m']):null;
+        $fd=is_numeric($floor['depth_m']??null)&&$floor['depth_m']>0?min(500,(float)$floor['depth_m']):null;
+        $env=is_array($floor['envelope']??null)?$floor['envelope']:[];
+        $envPts=normalize_geometry_points($env['points']??[],120);
+        $envConf=is_numeric($env['confidence']??null)?max(0,min(100,(float)$env['confidence'])):0;
+        $envNeeds=(bool)($env['needs_review']??(count($envPts)<3));
+        $rooms=[];
+        foreach(array_slice(is_array($floor['rooms']??null)?$floor['rooms']:[],0,150) as $ri=>$room){
+            if(!is_array($room)) continue;
+            $name=clean_string($room['name']??('Room '.($ri+1)),120);
+            $type=normalize_room_type(clean_string($room['type']??'other',50),$name);
+            $conf=is_numeric($room['confidence']??null)?max(0,min(100,(float)$room['confidence'])):0;
+            $dim=is_array($room['dimensions']??null)?$room['dimensions']:[];
+            $width=is_numeric($dim['width']??null)&&$dim['width']>0?min(200,(float)$dim['width']):null;
+            $length=is_numeric($dim['length']??null)&&$dim['length']>0?min(200,(float)$dim['length']):null;
+            $area=is_numeric($room['area_sqm']??null)&&$room['area_sqm']>0?min(10000,(float)$room['area_sqm']):null;
+            $g=is_array($room['geometry']??null)?$room['geometry']:[];
+            $pts=normalize_geometry_points($g['points']??[],120);
+            $gx=is_numeric($g['x']??null)?max(0,min(100,(float)$g['x'])):null;
+            $gy=is_numeric($g['y']??null)?max(0,min(100,(float)$g['y'])):null;
+            $gw=is_numeric($g['width']??null)?max(0,min(100,(float)$g['width'])):null;
+            $gd=is_numeric($g['depth']??null)?max(0,min(100,(float)$g['depth'])):null;
+            if($pts){$bb=polygon_bbox($pts);if($gx===null)$gx=$bb['x'];if($gy===null)$gy=$bb['y'];if($gw===null)$gw=$bb['width'];if($gd===null)$gd=$bb['depth'];}
+            if($area===null&&$width!==null&&$length!==null)$area=round($width*$length,2);
+            if($width===null&&$area!==null&&$length!==null&&$length>0)$width=round($area/$length,2);
+            if($length===null&&$area!==null&&$width!==null&&$width>0)$length=round($area/$width,2);
+            $doors=normalize_opening_details($room['door_details']??[],'door');
+            $windows=normalize_opening_details($room['window_details']??[],'window');
+            $doorCount=is_numeric($room['doors']??null)?max(0,min(100,(int)$room['doors'])):count($doors);
+            $windowCount=is_numeric($room['windows']??null)?max(0,min(100,(int)$room['windows'])):count($windows);
+            if($doors&&!$doorCount)$doorCount=count($doors); if($windows&&!$windowCount)$windowCount=count($windows);
+            $ev=is_array($room['evidence']??null)?$room['evidence']:[];
+            $evidence=['label_detected'=>(bool)($ev['label_detected']??false),'label_text'=>clean_string($ev['label_text']??'',120),'boundary_detected'=>(bool)($ev['boundary_detected']??(bool)$pts),'visual_context'=>clean_string($ev['visual_context']??'',300),'fixtures_detected'=>clean_array($ev['fixtures_detected']??[],30),'doors_detected'=>max(0,min(100,(int)($ev['doors_detected']??$doorCount))),'windows_detected'=>max(0,min(100,(int)($ev['windows_detected']??$windowCount))),'adjacency_evidence'=>clean_array($ev['adjacency_evidence']??[],30)];
+            $status=clean_string($room['status']??'unknown',20); if(!in_array($status,['detected','inferred','unknown'],true))$status=$conf>=75?'detected':($conf>0?'inferred':'unknown');
+            $needs=(bool)($room['needs_review']??false);
+            if($conf<75||!$evidence['boundary_detected']||($pts&&polygon_area_percent($pts)<.05))$needs=true;
+            $adj=clean_array($room['adjacent_rooms']??[],30);
+            $rooms[]=['name'=>$name,'type'=>$type,'area_sqm'=>$area,'dimensions'=>['width'=>$width,'length'=>$length],'doors'=>$doorCount,'windows'=>$windowCount,'door_details'=>$doors,'window_details'=>$windows,'geometry'=>['x'=>$gx,'y'=>$gy,'width'=>$gw,'depth'=>$gd,'points'=>$pts],'confidence'=>$conf,'status'=>$status,'needs_review'=>$needs,'evidence'=>$evidence,'adjacent_rooms'=>$adj];
         }
-
-        $no = is_numeric($floor['floor_number'] ?? null)
-            ? max(1, min(100, (int)$floor['floor_number']))
-            : $fi + 1;
-
-        $floorWidth = is_numeric($floor['width_m'] ?? null) && $floor['width_m'] > 0
-            ? min(500, (float)$floor['width_m'])
-            : null;
-        $floorDepth = is_numeric($floor['depth_m'] ?? null) && $floor['depth_m'] > 0
-            ? min(500, (float)$floor['depth_m'])
-            : null;
-
-        $rooms = [];
-        foreach (array_slice(is_array($floor['rooms'] ?? null) ? $floor['rooms'] : [], 0, 100) as $ri => $room) {
-            if (!is_array($room)) {
-                continue;
-            }
-
-            $name = clean_string($room['name'] ?? 'Unnamed Room', 120);
-            $type = normalize_room_type(
-                clean_string($room['type'] ?? 'other', 50),
-                $name
-            );
-            $c = is_numeric($room['confidence'] ?? null)
-                ? max(0, min(100, (float)$room['confidence']))
-                : 0;
-            $d = is_array($room['dimensions'] ?? null) ? $room['dimensions'] : [];
-            $g = is_array($room['geometry'] ?? null) ? $room['geometry'] : [];
-
-            $width = is_numeric($d['width'] ?? null) && $d['width'] > 0
-                ? min(200, (float)$d['width'])
-                : null;
-            $length = is_numeric($d['length'] ?? null) && $d['length'] > 0
-                ? min(200, (float)$d['length'])
-                : null;
-            $area = is_numeric($room['area_sqm'] ?? null) && $room['area_sqm'] > 0
-                ? min(10000, (float)$room['area_sqm'])
-                : null;
-
-            $gx = is_numeric($g['x'] ?? null) ? max(0, min(100, (float)$g['x'])) : null;
-            $gy = is_numeric($g['y'] ?? null) ? max(0, min(100, (float)$g['y'])) : null;
-            $gw = is_numeric($g['width'] ?? null) && $g['width'] > 0 ? min(100, (float)$g['width']) : null;
-            $gd = is_numeric($g['depth'] ?? null) && $g['depth'] > 0 ? min(100, (float)$g['depth']) : null;
-            $points = [];
-            foreach (array_slice(is_array($g['points'] ?? null) ? $g['points'] : [], 0, 24) as $pt) {
-                if (!is_array($pt) || !is_numeric($pt['x'] ?? null) || !is_numeric($pt['y'] ?? null)) continue;
-                $points[] = [
-                    'x' => max(0, min(100, (float)$pt['x'])),
-                    'y' => max(0, min(100, (float)$pt['y'])),
-                ];
-            }
-            if (count($points) < 3) $points = [];
-
-            $needs = (bool)($room['needs_review'] ?? ($c < 75));
-            $status = $room['status'] ?? null;
-            if (!in_array($status, ['detected', 'inferred', 'unknown'], true)) {
-                $status = $c >= 75 ? 'detected' : ($c > 0 ? 'inferred' : 'unknown');
-            }
-
-            if ($area === null && $width !== null && $length !== null) {
-                $area = round($width * $length, 2);
-            }
-            if ($width === null && $area !== null && $length !== null && $length > 0) {
-                $width = round($area / $length, 2);
-            }
-            if ($length === null && $area !== null && $width !== null && $width > 0) {
-                $length = round($area / $width, 2);
-            }
-
-            $rooms[] = [
-                'name' => $name,
-                'type' => $type,
-                'area_sqm' => $area,
-                'dimensions' => [
-                    'width' => $width,
-                    'length' => $length,
-                ],
-                'doors' => max(0, min(100, (int)($room['doors'] ?? 0))),
-                'windows' => max(0, min(100, (int)($room['windows'] ?? 0))),
-                'geometry' => [
-                    'x' => $gx,
-                    'y' => $gy,
-                    'width' => $gw,
-                    'depth' => $gd,
-                    'points' => $points,
-                ],
-                'confidence' => $c,
-                'status' => $status,
-                'needs_review' => $needs,
-            ];
-        }
-
-        $o['floors'][] = [
-            'floor_number' => $no,
-            'width_m' => $floorWidth,
-            'depth_m' => $floorDepth,
-            'rooms' => $rooms,
-        ];
+        $walls=normalize_wall_rows($floor['walls']??[]);
+        $stairs=is_array($floor['stairs']??null)?array_slice($floor['stairs'],0,50):[];
+        $o['floors'][]=['floor_number'=>$no,'width_m'=>$fw,'depth_m'=>$fd,'envelope'=>['points'=>$envPts,'confidence'=>$envConf,'needs_review'=>$envNeeds],'walls'=>$walls,'rooms'=>$rooms,'stairs'=>$stairs];
     }
-
-    $o['project']['floors_count'] = $o['project']['floors_count'] ?: count($o['floors']);
-
-    foreach ((array)($data['analysis_notes'] ?? $data['notes'] ?? []) as $n) {
-        $n = clean_string($n, 300);
-        if ($n !== '') {
-            $o['analysis_notes'][] = $n;
+    $o['project']['floors_count']=$o['project']['floors_count']?:count($o['floors']);
+    foreach((array)($data['analysis_notes']??$data['notes']??[]) as $note){$note=clean_string($note,350);if($note!=='')$o['analysis_notes'][]=$note;}
+    $o['analysis_notes']=array_values(array_unique($o['analysis_notes']));
+    foreach($o['floors'] as $floor){
+        if(count($floor['envelope']['points'])<3)$o['needs_review'][]='Floor '.$floor['floor_number'].' envelope could not be localized reliably.';
+        foreach($floor['rooms'] as $room){
+            if($room['needs_review'])$o['needs_review'][]=$room['name'].' requires engineering review.';
+            if($room['area_sqm']===null)$o['needs_review'][]=$room['name'].' area could not be verified from the plan.';
+            if(count($room['geometry']['points'])<3&&($room['geometry']['width']===null||$room['geometry']['depth']===null))$o['needs_review'][]=$room['name'].' boundary geometry is incomplete.';
         }
     }
-    $o['analysis_notes'] = array_values(array_unique($o['analysis_notes']));
-
-    foreach ($o['floors'] as $fl) {
-        foreach ($fl['rooms'] as $r) {
-            if ($r['needs_review']) {
-                $o['needs_review'][] = $r['name'].' requires engineering review.';
-            }
-            if ($r['area_sqm'] === null) {
-                $o['needs_review'][] = $r['name'].' area could not be verified from the plan.';
-            }
-        }
-    }
-
-    $o['needs_review'] = array_values(array_unique($o['needs_review']));
+    $o['needs_review']=array_values(array_unique($o['needs_review']));
     return $o;
 }
 
@@ -626,163 +604,50 @@ function infer_floor_dimensions(array $floor): array
     ];
 }
 
-function create_digital_model(array $project, array $analysis, array $recs, array $boq): array
+function unique_floor_edges(array $polygons): array
 {
-    $rooms = [];
-    $devices = [];
-    $floorsModel = [];
-    $idx = 0;
+    $edges=[];
+    foreach($polygons as $poly){ if(count($poly)<2)continue; $n=count($poly); for($i=0;$i<$n;$i++){
+        $a=$poly[$i];$b=$poly[($i+1)%$n];$k1=sprintf('%.2f,%.2f',(float)$a['x'],(float)$a['y']);$k2=sprintf('%.2f,%.2f',(float)$b['x'],(float)$b['y']);$key=strcmp($k1,$k2)<=0?$k1.'|'.$k2:$k2.'|'.$k1;
+        if(isset($edges[$key]))continue;
+        $edges[$key]=['points'=>[['x'=>(float)$a['x'],'y'=>(float)$a['y']],['x'=>(float)$b['x'],'y'=>(float)$b['y']]],'type'=>'interior','thickness_m'=>null,'confidence'=>55,'needs_review'=>true];
+    }}
+    return array_values($edges);
+}
 
-    foreach ($analysis['floors'] as $floor) {
-        $idx++;
-        [$floorWidth, $floorDepth] = array_values(infer_floor_dimensions($floor));
-        $floorWidth = $floorWidth ?: 12;
-        $floorDepth = $floorDepth ?: 10;
-
-        $roomList = [];
-        $fallbackCursorX = 0.5;
-        $fallbackCursorY = 0.5;
-        $fallbackRowDepth = 0.0;
-        $roomGap = 0.20;
-
-        foreach ($floor['rooms'] as $ri => $room) {
-            $area = (float)($room['area_sqm'] ?? 0);
-            $w = is_numeric($room['geometry']['width'] ?? null) && $room['geometry']['width'] > 0
-                ? (float)$room['geometry']['width']
-                : (float)($room['dimensions']['width'] ?? 0);
-            $d = is_numeric($room['geometry']['depth'] ?? null) && $room['geometry']['depth'] > 0
-                ? (float)$room['geometry']['depth']
-                : (float)($room['dimensions']['length'] ?? 0);
-
-            if ($w <= 0 && $d > 0 && $area > 0) {
-                $w = $area / $d;
-            }
-            if ($d <= 0 && $w > 0 && $area > 0) {
-                $d = $area / $w;
-            }
-            if ($w <= 0 || $d <= 0) {
-                $w = max(3.0, min(10.0, sqrt(max(12, $area ?: 24) * 1.20)));
-                $d = max(3.0, min(10.0, ($area ?: ($w * 0.8)) / $w));
-            }
-
-            $gxPct = $room['geometry']['x'] ?? null;
-            $gyPct = $room['geometry']['y'] ?? null;
-            $gwPct = $room['geometry']['width'] ?? null;
-            $gdPct = $room['geometry']['depth'] ?? null;
-            $hasGeometry = is_numeric($gxPct) && is_numeric($gyPct);
-            $polygon = is_array($room['geometry']['points'] ?? null) ? $room['geometry']['points'] : [];
-            $hasPolygon = count($polygon) >= 3;
-
-            if ($hasGeometry) {
-                $gx = ((float)$gxPct / 100) * $floorWidth;
-                $gy = ((float)$gyPct / 100) * $floorDepth;
-                if (is_numeric($gwPct) && (float)$gwPct > 0) {
-                    $w = max(2.2, ((float)$gwPct / 100) * $floorWidth);
-                }
-                if (is_numeric($gdPct) && (float)$gdPct > 0) {
-                    $d = max(2.2, ((float)$gdPct / 100) * $floorDepth);
-                }
-            } else {
-                if ($fallbackCursorX + $w > $floorWidth) {
-                    $fallbackCursorX = 0.5;
-                    $fallbackCursorY += $fallbackRowDepth + $roomGap;
-                    $fallbackRowDepth = 0.0;
-                }
-                $gx = $fallbackCursorX;
-                $gy = $fallbackCursorY;
-                $fallbackCursorX += $w + $roomGap;
-                $fallbackRowDepth = max($fallbackRowDepth, $d);
-            }
-
-            $roomModel = [
-                'id' => 'f'.$floor['floor_number'].'r'.($ri + 1),
-                'floor' => $floor['floor_number'],
-                'name' => $room['name'],
-                'type' => $room['type'],
-                'area_sqm' => $area > 0 ? $area : null,
-                'x' => round((float)$gx, 2),
-                'y' => round((float)$gy, 2),
-                'width' => round(max(2.2, min(50, $w)), 2),
-                'depth' => round(max(2.2, min(50, $d)), 2),
-                'confidence' => $room['confidence'],
-                'needs_review' => $room['needs_review'] || !$hasGeometry,
-                'geometry_source' => $hasPolygon ? 'ai_polygon' : ($hasGeometry ? 'ai_detected' : 'reconstructed_from_room_data'),
-                'polygon' => $hasPolygon ? $polygon : [],
-                'doors' => $room['doors'],
-                'windows' => $room['windows'],
-            ];
-
-            $rooms[] = $roomModel;
-            $roomList[] = $roomModel['id'];
+function create_digital_model(array $project,array $analysis,array $recs,array $boq): array
+{
+    $rooms=[];$devices=[];$floorsModel=[];
+    foreach($analysis['floors'] as $floor){
+        [$floorWidth,$floorDepth]=array_values(infer_floor_dimensions($floor));
+        $floorWidth=$floorWidth?:12.0;$floorDepth=$floorDepth?:10.0;
+        $envelopePoints=$floor['envelope']['points']??[];$roomPolygons=[];
+        foreach($floor['rooms'] as $r){if(count($r['geometry']['points']??[])>=3)$roomPolygons[]=$r['geometry']['points'];}
+        $envelopeSource='ai_envelope';
+        if(count($envelopePoints)<3){
+            if($roomPolygons){$xs=[];$ys=[];foreach($roomPolygons as $poly)foreach($poly as $p){$xs[]=$p['x'];$ys[]=$p['y'];}$envelopePoints=[['x'=>min($xs),'y'=>min($ys)],['x'=>max($xs),'y'=>min($ys)],['x'=>max($xs),'y'=>max($ys)],['x'=>min($xs),'y'=>max($ys)]];$envelopeSource='derived_from_room_geometry';}
+            else{$envelopePoints=[['x'=>0,'y'=>0],['x'=>100,'y'=>0],['x'=>100,'y'=>100],['x'=>0,'y'=>100]];$envelopeSource='visual_fallback';}
         }
-
-        $floorsModel[] = [
-            'floor_number' => $floor['floor_number'],
-            'width_m' => round($floorWidth, 2),
-            'depth_m' => round($floorDepth, 2),
-            'room_ids' => $roomList,
-            'needs_review' => count(array_filter($rooms, static fn($r) => $r['floor'] === $floor['floor_number'] && $r['needs_review'])) > 0,
-        ];
+        $walls=$floor['walls']??[]; if(!$walls)$walls=unique_floor_edges(array_merge($roomPolygons,[$envelopePoints]));
+        $floorRoomIds=[];
+        foreach($floor['rooms'] as $ri=>$room){
+            $area=is_numeric($room['area_sqm']??null)?(float)$room['area_sqm']:null;$g=$room['geometry']??[];$polygon=$g['points']??[];
+            $gx=is_numeric($g['x']??null)?(float)$g['x']:null;$gy=is_numeric($g['y']??null)?(float)$g['y']:null;$gw=is_numeric($g['width']??null)?(float)$g['width']:null;$gd=is_numeric($g['depth']??null)?(float)$g['depth']:null;
+            if(count($polygon)>=3){$bb=polygon_bbox($polygon);if($gx===null)$gx=$bb['x'];if($gy===null)$gy=$bb['y'];if($gw===null)$gw=$bb['width'];if($gd===null)$gd=$bb['depth'];}
+            $xMeters=$gx!==null?($gx/100)*$floorWidth:null;$yMeters=$gy!==null?($gy/100)*$floorDepth:null;$wMeters=$gw!==null&&$gw>0?($gw/100)*$floorWidth:null;$dMeters=$gd!==null&&$gd>0?($gd/100)*$floorDepth:null;
+            if($wMeters===null&&is_numeric($room['dimensions']['width']??null)&&$room['dimensions']['width']>0)$wMeters=(float)$room['dimensions']['width'];
+            if($dMeters===null&&is_numeric($room['dimensions']['length']??null)&&$room['dimensions']['length']>0)$dMeters=(float)$room['dimensions']['length'];
+            if($wMeters===null&&$dMeters!==null&&$area!==null)$wMeters=$area/$dMeters;
+            if($dMeters===null&&$wMeters!==null&&$area!==null)$dMeters=$area/$wMeters;
+            $roomModel=['id'=>'f'.$floor['floor_number'].'r'.($ri+1),'floor'=>$floor['floor_number'],'name'=>$room['name'],'type'=>$room['type'],'area_sqm'=>$area,'x'=>round((float)($xMeters??0),3),'y'=>round((float)($yMeters??0),3),'width'=>round((float)($wMeters??0),3),'depth'=>round((float)($dMeters??0),3),'confidence'=>$room['confidence'],'needs_review'=>(bool)$room['needs_review'],'geometry_source'=>count($polygon)>=3?'ai_polygon':(($gx!==null&&$gy!==null)?'ai_bbox':'missing'),'polygon'=>$polygon,'dimensions'=>$room['dimensions'],'doors'=>$room['doors'],'windows'=>$room['windows'],'door_details'=>$room['door_details'],'window_details'=>$room['window_details'],'evidence'=>$room['evidence'],'adjacent_rooms'=>$room['adjacent_rooms'],'geometry_validation'=>['polygon_area_percent'=>count($polygon)>=3?round(polygon_area_percent($polygon),2):0,'validation_status'=>(bool)$room['needs_review']?'review':'valid']];
+            $rooms[]=$roomModel;$floorRoomIds[]=$roomModel['id'];
+        }
+        $floorsModel[]=['floor_number'=>$floor['floor_number'],'width_m'=>round($floorWidth,3),'depth_m'=>round($floorDepth,3),'room_ids'=>$floorRoomIds,'envelope'=>['points'=>$envelopePoints,'confidence'=>$floor['envelope']['confidence']??0,'needs_review'=>($floor['envelope']['needs_review']??false)||$envelopeSource!=='ai_envelope','source'=>$envelopeSource],'walls'=>$walls,'stairs'=>$floor['stairs']??[],'needs_review'=>($floor['envelope']['needs_review']??false)||$envelopeSource!=='ai_envelope'||count(array_filter($floor['rooms'],static fn($r)=>$r['needs_review']))>0];
     }
-
-    foreach ($recs as $i => $r) {
-        $devices[] = [
-            'id' => 'd'.($i + 1),
-            'room' => $r['room'],
-            'type' => $r['type'],
-            'category' => $r['category'],
-            'qty' => (int)$r['qty'],
-            'required' => $r['required'] ?? 'required',
-            'confidence' => $r['confidence'],
-            'reason' => $r['reason'] ?? '',
-            'rule' => $r['rule'] ?? '',
-        ];
-    }
-
-    $homeAssistant = [
-        'entities' => [],
-        'scenes' => [
-            ['id' => 'scene_arrival', 'name' => 'Arrival'],
-            ['id' => 'scene_night', 'name' => 'Night'],
-        ],
-        'automations' => [
-            ['id' => 'auto_motion_lighting', 'name' => 'Motion lighting'],
-            ['id' => 'auto_security_alert', 'name' => 'Security alert'],
-            ['id' => 'auto_gas_shutoff', 'name' => 'Gas leak shutoff'],
-            ['id' => 'auto_water_shutoff', 'name' => 'Water leak shutoff'],
-        ],
-    ];
-
-    foreach ($devices as $d) {
-        $slug = preg_replace('/[^a-z0-9]+/i', '_', strtolower($d['room'].'_'.$d['type']));
-        $homeAssistant['entities'][] = [
-            'entity_id' => 'sensor.esso_'.$slug,
-            'name' => $d['room'].' - '.$d['type'],
-            'room' => $d['room'],
-        ];
-    }
-
-    return [
-        'version' => 2,
-        'project' => [
-            'type' => $project['project_type'] ?? '',
-            'area_sqm' => $project['area'] ?? null,
-            'floors' => $project['floors'] ?? null,
-            'location' => $project['location'] ?? '',
-        ],
-        'floors' => $floorsModel,
-        'rooms' => $rooms,
-        'devices' => $devices,
-        'boq' => $boq,
-        'home_assistant' => $homeAssistant,
-        'preview' => [
-            'watermarked' => true,
-            'download_disabled' => true,
-            'source_files_private' => true,
-            'geometry_is_preliminary' => true,
-            'viewer_mode' => 'home-assistant-style',
-        ],
-    ];
+    foreach($recs as $i=>$r)$devices[]=['id'=>'d'.($i+1),'room'=>$r['room'],'type'=>$r['type'],'category'=>$r['category'],'qty'=>(int)$r['qty'],'required'=>$r['required']??'required','confidence'=>$r['confidence'],'reason'=>$r['reason']??'','rule'=>$r['rule']??''];
+    $homeAssistant=['entities'=>[],'scenes'=>[['id'=>'scene_arrival','name'=>'Arrival'],['id'=>'scene_night','name'=>'Night']],'automations'=>[['id'=>'auto_motion_lighting','name'=>'Motion lighting'],['id'=>'auto_security_alert','name'=>'Security alert'],['id'=>'auto_gas_shutoff','name'=>'Gas leak shutoff'],['id'=>'auto_water_shutoff','name'=>'Water leak shutoff']]];
+    foreach($devices as $d){$slug=preg_replace('/[^a-z0-9]+/i','_',strtolower($d['room'].'_'.$d['type']));$homeAssistant['entities'][]=['entity_id'=>'sensor.esso_'.$slug,'name'=>$d['room'].' - '.$d['type'],'room'=>$d['room']];}
+    return ['version'=>3,'project'=>['type'=>$project['project_type']??'','area_sqm'=>$project['area']??null,'floors'=>$project['floors']??null,'location'=>$project['location']??'','orientation'=>$analysis['project']['orientation']??'unknown'],'floors'=>$floorsModel,'rooms'=>$rooms,'devices'=>$devices,'boq'=>$boq,'home_assistant'=>$homeAssistant,'preview'=>['watermarked'=>true,'download_disabled'=>true,'source_files_private'=>true,'geometry_is_preliminary'=>true,'viewer_mode'=>'architectural-digital-twin']];
 }
 
 function save_project(array $payload): array
