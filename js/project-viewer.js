@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
 (() => {
   'use strict';
 
@@ -6,24 +9,25 @@
   const isAr = document.documentElement.lang === 'ar';
   const tr = (en, ar) => isAr ? ar : en;
   const $ = id => document.getElementById(id);
-  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   const state = {
     project: null,
     model: null,
-    selectedFloor: null,
+    floor: null,
     selectedRoom: null,
-    canvas: null,
-    ctx: null,
-    dragging: false,
-    lastX: 0,
-    lastY: 0,
-    rotY: -0.68,
-    rotX: 0.62,
-    zoom: 1,
-    roomMeshes: []
+    scene: null,
+    camera: null,
+    renderer: null,
+    controls: null,
+    root: null,
+    rooms3d: new Map(),
+    showWalls: true,
+    showFurniture: true,
+    showDevices: true,
+    showLabels: true,
+    floorW: 12,
+    floorD: 10
   };
 
   if (!token) {
@@ -31,437 +35,830 @@
     return;
   }
 
-  async function run() {
-    try {
-      const r = await fetch('api/project.php?token=' + encodeURIComponent(token), { credentials: 'same-origin', cache: 'no-store' });
-      const j = await r.json();
-      if (!r.ok || !j.success) throw new Error(j.message || tr('Project not found', 'المشروع غير موجود'));
+  const COLORS = {
+    slab: 0xd8d2c8,
+    floor: 0xf0ebe2,
+    wall: 0xd1c9bd,
+    exterior: 0xa99f91,
+    wood: 0x8b6a4e,
+    woodDark: 0x5d4635,
+    fabric: 0xaaa39a,
+    fabricLight: 0xd8d1c8,
+    metal: 0x92999b,
+    glass: 0x8ebdcc,
+    ceramic: 0xe9eceb,
+    dark: 0x303538,
+    green: 0x527c68,
+    plant: 0x65815c,
+    accent: 0x2d7568,
+    review: 0xc58c2b,
+    light: 0xffdf9b
+  };
 
-      state.project = j.project;
-      state.model = state.project.digital_model || {};
-      const floors = state.model.floors || [];
-      state.selectedFloor = floors[0]?.floor_number ?? state.model.rooms?.[0]?.floor ?? 1;
-
-      $('viewerStatus').hidden = true;
-      $('viewer').hidden = false;
-      $('projectToken').textContent = tr('PROJECT ', 'المشروع ') + state.project.token;
-      $('projectTitle').textContent = (state.model.project?.type || tr('Smart Home', 'المنزل الذكي')) + (isAr ? ' — معاينة رقمية' : ' — Digital Preview');
-      $('projectSubtitle').textContent = `${state.model.rooms?.length || 0} ${tr('rooms', 'غرف')} • ${state.model.devices?.length || 0} ${tr('smart items', 'أجهزة ذكية')}`;
-
-      renderFloors();
-      renderStats();
-      renderTables();
-      renderReview();
-      render2D();
-      init3D();
-    } catch (e) {
-      $('viewerStatus').textContent = e.message || tr('Unable to load preview.', 'تعذر تحميل المعاينة.');
-    }
-  }
-
-  function currentRooms() {
-    return (state.model.rooms || []).filter(r => Number(r.floor) === Number(state.selectedFloor));
-  }
-
-  function renderFloors() {
-    const tabs = $('floorTabs');
-    const floors = state.model.floors || [];
-    tabs.innerHTML = floors.map(f => `<button type="button" class="floor-tab ${Number(f.floor_number) === Number(state.selectedFloor) ? 'active' : ''}" data-floor="${f.floor_number}">${tr('Floor', 'الدور')} ${f.floor_number}</button>`).join('');
-    tabs.querySelectorAll('.floor-tab').forEach(b => b.addEventListener('click', () => {
-      state.selectedFloor = Number(b.dataset.floor);
-      state.selectedRoom = null;
-      renderFloors();
-      render2D();
-      draw3D();
-    }));
-  }
-
-  function renderStats() {
-    const rooms = state.model.rooms || [];
-    const devices = state.model.devices || [];
-    const reviewRooms = rooms.filter(r => r.needs_review).length;
-    const totalArea = state.model.project?.area_sqm ?? state.project.project?.area ?? 'TBD';
-    $('viewerStats').innerHTML = [
-      [tr('Area', 'المساحة'), totalArea !== 'TBD' ? totalArea + ' m²' : 'TBD'],
-      [tr('Floors', 'الأدوار'), (state.model.floors || []).length],
-      [tr('Rooms', 'الغرف'), rooms.length],
-      [tr('Devices', 'الأجهزة'), devices.length],
-      [tr('Rooms needing review', 'غرف تحتاج مراجعة'), reviewRooms],
-    ].map(([a,b]) => `<div class="viewer-stat"><span>${esc(a)}</span><strong>${esc(b)}</strong></div>`).join('');
-  }
-
-
-  function roomBox(r) {
-    return {x:Number(r.x||0), y:Number(r.y||0), w:Math.max(0.8,Number(r.width||1)), h:Math.max(0.8,Number(r.depth||1))};
-  }
-
-  function overlap(a,b){
-    const ox=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));
-    const oy=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
-    return {area:ox*oy, ox, oy};
-  }
-
-  // Repair grossly overlapping AI boxes while preserving their rough relative location.
-  // This prevents the viewer from displaying the unreadable pile-up seen when a vision model
-  // returns mutually inconsistent rectangles. It is a display repair, not an engineering claim.
-  function repairRoomLayout(rooms, floorW, floorD){
-    const out=rooms.map(r=>({...r, x:Number(r.x||0), y:Number(r.y||0), width:Number(r.width||2.5), depth:Number(r.depth||2.5)}));
-    const hasTooMuchOverlap = ()=>{
-      let bad=0, pairs=0;
-      for(let i=0;i<out.length;i++) for(let j=i+1;j<out.length;j++){
-        const a=roomBox(out[i]),b=roomBox(out[j]),o=overlap(a,b); const minA=Math.min(a.w*a.h,b.w*b.h);
-        if(minA>0 && o.area/minA>0.38) bad++; pairs++;
-      }
-      return pairs>0 && bad/Math.max(1,pairs)>.18;
-    };
-    for(let pass=0; pass<18 && hasTooMuchOverlap(); pass++){
-      for(let i=0;i<out.length;i++) for(let j=i+1;j<out.length;j++){
-        const a=roomBox(out[i]),b=roomBox(out[j]),o=overlap(a,b); if(o.area<=0) continue;
-        const ax=a.x+a.w/2, ay=a.y+a.h/2, bx=b.x+b.w/2, by=b.y+b.h/2;
-        if(o.ox >= o.oy){
-          const push=(o.ox/2)+0.08; if(ax<=bx){out[i].x-=push;out[j].x+=push;}else{out[i].x+=push;out[j].x-=push;}
-        }else{
-          const push=(o.oy/2)+0.08; if(ay<=by){out[i].y-=push;out[j].y+=push;}else{out[i].y+=push;out[j].y-=push;}
-        }
-      }
-      out.forEach(r=>{r.x=Math.max(0.15,Math.min(floorW-r.width-0.15,r.x));r.y=Math.max(0.15,Math.min(floorD-r.depth-0.15,r.y));});
-    }
-    // Final deterministic pack if the model supplied unusable geometry.
-    if(hasTooMuchOverlap()){
-      const gap=.18; let x=.25,y=.25,rowH=0;
-      const sorted=[...out].sort((a,b)=>(Number(b.width*b.depth)-Number(a.width*a.depth)));
-      for(const r of sorted){
-        if(x+r.width>floorW-.25){x=.25;y+=rowH+gap;rowH=0;}
-        r.x=x;r.y=y;x+=r.width+gap;rowH=Math.max(rowH,r.depth);
-      }
-    }
-    return out;
-  }
-
-  function render2D() {
-    const el = $('floorPlan2d');
-    const floors = state.model.floors || [];
-    const f = floors.find(x => Number(x.floor_number) === Number(state.selectedFloor));
-    let rooms = currentRooms();
-    if (!rooms.length) {
-      el.innerHTML = `<div class="empty-state">${tr('No reliable rooms were detected for this floor.', 'لم يتم اكتشاف غرف موثوقة في هذا الدور.')}</div>`;
-      return;
-    }
-
-    const floorW = Math.max(1, Number(f?.width_m || Math.max(...rooms.map(r => Number(r.x || 0) + Number(r.width || 0)), 10)));
-    const floorD = Math.max(1, Number(f?.depth_m || Math.max(...rooms.map(r => Number(r.y || 0) + Number(r.depth || 0)), 8)));
-    rooms = repairRoomLayout(rooms, floorW, floorD);
-    const devices = state.model.devices || [];
-    const deviceMap = {};
-    devices.forEach(d => { deviceMap[d.room] = (deviceMap[d.room] || 0) + Number(d.qty || 0); });
-
-    el.innerHTML = `<div class="plan-canvas" style="aspect-ratio:${floorW}/${floorD};">${rooms.map(r => {
-      const selected = state.selectedRoom === r.id ? ' selected' : '';
-      const review = r.needs_review ? ' review' : '';
-      const left = Math.max(0, Math.min(96, Number(r.x || 0) / floorW * 100));
-      const top = Math.max(0, Math.min(96, Number(r.y || 0) / floorD * 100));
-      const width = Math.max(6, Math.min(100 - left, Number(r.width || 1) / floorW * 100));
-      const height = Math.max(7, Math.min(100 - top, Number(r.depth || 1) / floorD * 100));
-      return `<button type="button" class="plan-room${review}${selected}" data-room="${esc(r.id)}" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%;">
-        <span class="plan-room-name">${esc(r.name)}</span>
-        <span class="plan-room-meta">${r.area_sqm ? esc(r.area_sqm)+' m²' : 'TBD'} · ${deviceMap[r.name] || 0} devices</span>
-      </button>`;
-    }).join('')}</div>`;
-
-    el.querySelectorAll('.plan-room').forEach(b => b.addEventListener('click', () => {
-      state.selectedRoom = b.dataset.room;
-      const room = rooms.find(r => r.id === state.selectedRoom);
-      showRoomDetails(room);
-      render2D();
-      draw3D();
-    }));
-  }
-
-  function showRoomDetails(room) {
-    const box = $('roomDetails');
-    if (!room) { box.hidden = true; return; }
-    const devices = (state.model.devices || []).filter(d => d.room === room.name);
-    box.hidden = false;
-    box.innerHTML = `<strong>${esc(room.name)}</strong><span>${esc(room.type || tr('Room', 'غرفة'))}</span><span>${room.area_sqm ? esc(room.area_sqm)+' m²' : tr('Area TBD', 'المساحة غير محددة')}</span><div>${devices.map(d => `${esc(d.type)} × ${esc(d.qty)}`).join('<br>') || tr('No device data', 'لا توجد بيانات أجهزة')}</div>`;
-  }
-
-  function renderTables() {
-    const devices = state.model.devices || [];
-    const boq = state.model.boq || [];
-    $('deviceTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Room','الغرفة')}</th><th>${tr('Device','الجهاز')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Category','الفئة')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${devices.length ? devices.map(d => `<tr><td>${esc(d.room)}</td><td>${esc(d.type)}</td><td>${esc(d.qty)}</td><td>${esc(d.category)}</td><td>${d.required === 'required' ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : `<tr><td colspan="5">${tr('No devices generated.','لم يتم إنشاء أجهزة.')}</td></tr>`}</tbody></table></div>`;
-    $('boqTable').innerHTML = `<div class="table-scroll"><table class="smart-table"><thead><tr><th>${tr('Category','الفئة')}</th><th>${tr('Item','البند')}</th><th>${tr('Qty','الكمية')}</th><th>${tr('Rooms','الغرف')}</th><th>${tr('Required','المطلوب')}</th></tr></thead><tbody>${boq.length ? boq.map(b => `<tr><td>${esc(b.category)}</td><td>${esc(b.item)}</td><td>${esc(b.quantity)}</td><td>${esc((b.rooms || []).join(', ') || tr('Project','المشروع'))}</td><td>${b.required ? tr('Yes','نعم') : tr('Recommended','موصى به')}</td></tr>`).join('') : `<tr><td colspan="5">${tr('No BOQ generated.','لم يتم إنشاء BOQ.')}</td></tr>`}</tbody></table></div>`;
-  }
-
-  function renderReview() {
-    const analysis = state.project.analysis || {};
-    const notes = [ ...(analysis.needs_review || []), ...(analysis.analysis_notes || []) ];
-    const box = $('reviewBox');
-    if (!notes.length) { box.hidden = true; return; }
-    box.hidden = false;
-    box.innerHTML = `<strong>${tr('Engineering review required','تحتاج هذه النتائج إلى مراجعة هندسية')}</strong><ul>${notes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
-  }
-
-  function init3D() {
-    const host = $('model3d');
-    host.innerHTML = `<canvas id="esso3dCanvas" aria-label="${tr('Interactive 3D digital twin', 'النموذج الرقمي ثلاثي الأبعاد التفاعلي')}"></canvas><div class="model3d-hint">${tr('Interactive 3D preview • drag to rotate • scroll to zoom', 'معاينة ثلاثية الأبعاد تفاعلية • اسحب للدوران • مرر للتكبير')}</div>`;
-    state.canvas = $('esso3dCanvas');
-    state.ctx = state.canvas.getContext('2d');
-    if (!state.ctx) {
-      host.innerHTML = '<div class="empty-state">3D preview is unavailable in this browser.</div>';
-      return;
-    }
-    state.canvas.addEventListener('pointerdown', e => {
-      state.dragging = true;
-      state.lastX = e.clientX;
-      state.lastY = e.clientY;
-      state.canvas.setPointerCapture?.(e.pointerId);
+  function mat(color, roughness, metalness) {
+    return new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: roughness == null ? 0.72 : roughness,
+      metalness: metalness == null ? 0 : metalness
     });
-    state.canvas.addEventListener('pointermove', e => {
-      if (!state.dragging) return;
-      state.rotY += (e.clientX - state.lastX) * 0.008;
-      state.rotX = Math.max(0.25, Math.min(1.15, state.rotX - (e.clientY - state.lastY) * 0.006));
-      state.lastX = e.clientX;
-      state.lastY = e.clientY;
-      draw3D();
-    });
-    state.canvas.addEventListener('pointerup', e => { state.dragging = false; state.canvas.releasePointerCapture?.(e.pointerId); });
-    state.canvas.addEventListener('pointercancel', () => { state.dragging = false; });
-    state.canvas.addEventListener('wheel', e => {
-      e.preventDefault();
-      state.zoom = Math.max(0.55, Math.min(2.5, state.zoom * (e.deltaY < 0 ? 1.08 : 0.93)));
-      draw3D();
-    }, { passive: false });
-    state.canvas.addEventListener('click', e => handle3DClick(e));
-    window.addEventListener('resize', draw3D);
-    draw3D();
   }
 
-  function worldToCamera(x, y, z) {
-    const cy = Math.cos(state.rotY), sy = Math.sin(state.rotY);
-    const cx = Math.cos(state.rotX), sx = Math.sin(state.rotX);
-    const x1 = x * cy - z * sy;
-    const z1 = x * sy + z * cy;
-    const y1 = y * cx - z1 * sx;
-    const z2 = y * sx + z1 * cx;
-    return { x: x1, y: y1, z: z2 };
+  function box(w, h, d, color, rough, metal) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.02, w), Math.max(0.02, h), Math.max(0.02, d)), mat(color, rough, metal));
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
   }
 
-  // Architectural orthographic projection: keeps the whole floor readable
-  // instead of making distant rooms collapse into a tiny perspective cluster.
-  function project(p, cx, cy, scale) {
-    return {
-      x: cx + p.x * scale,
-      y: cy - p.y * scale,
-      z: p.z
-    };
+  function cyl(r, h, color, segments, rough, metal) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(0.01, r), Math.max(0.01, r), Math.max(0.02, h), segments || 20), mat(color, rough, metal));
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
   }
 
-
-  function shade(hex, factor){
-    const n=parseInt(hex.replace('#',''),16), r=(n>>16)&255,g=(n>>8)&255,b=n&255;
-    return `rgb(${Math.max(0,Math.min(255,Math.round(r*factor)))},${Math.max(0,Math.min(255,Math.round(g*factor)))},${Math.max(0,Math.min(255,Math.round(b*factor)))})`;
+  function sphere(r, color, rough, metal) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), mat(color, rough, metal));
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
   }
 
-  function drawFurnitureBox(x,z,w,d,h,fill='#a88c73',outline='#5f5146',label=''){
-    const rh=Math.max(0.08,Number(h||0.35));
-    const pts3=[[x,0,z],[x+w,0,z],[x+w,0,z+d],[x,0,z+d],[x,rh,z],[x+w,rh,z],[x+w,rh,z+d],[x,rh,z+d]];
-    const pts=pts3.map(p=>project(worldToCamera(p[0],p[1],p[2]),state._cx,state._cy,state._scale));
-    const faces=[[0,1,5,4],[1,2,6,5],[3,0,4,7],[4,5,6,7]];
-    faces.forEach((idx,fi)=>{
-      const path=new Path2D(); path.moveTo(pts[idx[0]].x,pts[idx[0]].y); idx.slice(1).forEach(i=>path.lineTo(pts[i].x,pts[i].y)); path.closePath();
-      state.ctx.fillStyle=fi===3?fill:shade(fill,[0.92,0.82,0.74][Math.min(fi,2)]); state.ctx.fill(path);
-      state.ctx.strokeStyle=outline; state.ctx.lineWidth=.7; state.ctx.stroke(path);
-    });
-    if(label){const q=project(worldToCamera(x+w/2,rh+.03,z+d/2),state._cx,state._cy,state._scale);state.ctx.fillStyle='#4a3f36';state.ctx.font='8px Arial';state.ctx.textAlign='center';state.ctx.fillText(label,q.x,q.y);}
+  function group() { return new THREE.Group(); }
+
+  function add(g, obj, x, y, z, rotY) {
+    obj.position.set(x || 0, y || 0, z || 0);
+    if (rotY != null) obj.rotation.y = rotY;
+    g.add(obj);
+    return obj;
   }
 
-  function drawRug(x,z,w,d,fill='#d9c9b4'){
-    const p1=project(worldToCamera(x,0.015,z),state._cx,state._cy,state._scale),p2=project(worldToCamera(x+w,0.015,z),state._cx,state._cy,state._scale),p3=project(worldToCamera(x+w,0.015,z+d),state._cx,state._cy,state._scale),p4=project(worldToCamera(x,0.015,z+d),state._cx,state._cy,state._scale);
-    const path=new Path2D(); path.moveTo(p1.x,p1.y);path.lineTo(p2.x,p2.y);path.lineTo(p3.x,p3.y);path.lineTo(p4.x,p4.y);path.closePath();state.ctx.fillStyle=fill;state.ctx.fill(path);state.ctx.strokeStyle='#aa9c8b';state.ctx.lineWidth=.5;state.ctx.stroke(path);
+  function floorRooms() {
+    return (state.model.rooms || []).filter(r => Number(r.floor) === Number(state.floor?.floor_number));
   }
 
-  function drawBed(r){
-    const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||4),d=Number(r.depth||4);
-    const bw=Math.max(1.6,w*.58),bd=Math.max(1.8,d*.46),bx=x+w*.21,bz=z+d*.22;
-    drawRug(x+w*.13,z+d*.12,w*.74,d*.72,'#d7c7b0');
-    drawFurnitureBox(bx,bz,bw,bd,.28,'#8b684d');
-    drawFurnitureBox(bx+.05,bz+.03,bw-.1,bd-.12,.07,'#eee4d4');
-    drawFurnitureBox(bx,bz+bd*.78,bw*.22,bd*.13,.38,'#a7a7a3');
-    drawFurnitureBox(bx+bw*.78,bz+bd*.78,bw*.22,bd*.13,.38,'#a7a7a3');
-    drawFurnitureBox(x+w*.05,z+d*.18,.34,.75,.65,'#765945');
-    drawFurnitureBox(x+w*.79,z+d*.18,.34,.75,.65,'#765945');
-    drawFurnitureBox(x+w*.72,z+d*.63,w*.2,.48,.86,'#6b5b4d');
-  }
-
-  function drawSofa(r){
-    const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||5),d=Number(r.depth||4);
-    drawRug(x+w*.14,z+d*.20,w*.62,d*.46,'#d8d0c5');
-    drawFurnitureBox(x+w*.12,z+d*.18,w*.26,d*.18,.58,'#8e7561');
-    drawFurnitureBox(x+w*.40,z+d*.18,w*.26,d*.18,.58,'#947a65');
-    drawFurnitureBox(x+w*.68,z+d*.18,w*.16,d*.18,.58,'#9a7d68');
-    drawFurnitureBox(x+w*.13,z+d*.38,w*.71,d*.17,.34,'#b8a08a');
-    drawFurnitureBox(x+w*.37,z+d*.63,w*.24,d*.15,.24,'#6f8087');
-    drawFurnitureBox(x+w*.76,z+d*.52,.42,.52,1.05,'#5f4d41');
-  }
-
-  function drawDining(r){
-    const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||5),d=Number(r.depth||4);
-    const tw=w*.46,td=d*.23,tx=x+w*.27,tz=z+d*.38;
-    drawRug(x+w*.20,z+d*.26,w*.60,d*.50,'#d6cec2');
-    drawFurnitureBox(tx,tz,tw,td,.44,'#8d674b');
-    [[x+w*.22,z+d*.31],[x+w*.66,z+d*.31],[x+w*.22,z+d*.67],[x+w*.66,z+d*.67]].forEach(([cx,cz])=>drawFurnitureBox(cx,cz,.32,.42,.34,'#76604f'));
-  }
-
-  function drawKitchen(r){
-    const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||4),d=Number(r.depth||4);
-    drawFurnitureBox(x+w*.07,z+d*.08,w*.86,.34,1.0,'#b6b0a5');
-    drawFurnitureBox(x+w*.07,z+d*.08,w*.86,.10,1.04,'#e3ddd0');
-    drawFurnitureBox(x+w*.57,z+d*.42,w*.25,d*.34,.92,'#a9a39a');
-    drawFurnitureBox(x+w*.61,z+d*.44,w*.17,d*.27,.96,'#d8d1c1');
-    drawFurnitureBox(x+w*.16,z+d*.67,w*.28,.30,.90,'#aaa49a');
-  }
-
-  function drawBathroom(r){
-    const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||3),d=Number(r.depth||3);
-    drawRug(x+w*.10,z+d*.62,w*.28,d*.18,'#cfd8dc');
-    drawFurnitureBox(x+w*.10,z+d*.16,w*.25,d*.25,.43,'#e7e9e6');
-    drawFurnitureBox(x+w*.58,z+d*.12,w*.24,d*.34,.18,'#d7dce0');
-    drawFurnitureBox(x+w*.18,z+d*.54,w*.50,d*.18,.60,'#e2e4df');
-    drawFurnitureBox(x+w*.72,z+d*.50,.20,.20,1.1,'#a8b0b4');
-  }
-
-  function drawOffice(r){
-    const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||4),d=Number(r.depth||4);
-    drawFurnitureBox(x+w*.15,z+d*.18,w*.56,d*.16,.55,'#8b664b');
-    drawFurnitureBox(x+w*.34,z+d*.39,w*.22,d*.16,.36,'#6b7a80');
-    drawFurnitureBox(x+w*.72,z+d*.18,.35,.38,.58,'#765b49');
-    drawFurnitureBox(x+w*.20,z+d*.55,w*.22,.22,.32,'#8b735d');
-  }
-
-
-  function drawDeviceMarkers(r){
-    const devices=(state.model.devices||[]).filter(d=>d.room===r.name);
-    if(!devices.length) return;
-    const x=Number(r.x||0), z=Number(r.y||0), w=Number(r.width||3), d=Number(r.depth||3);
-    let shown=0;
-    for(const dev of devices.slice(0,6)){
-      const px=x+w*(0.17+(shown%3)*0.30), pz=z+d*(0.18+Math.floor(shown/3)*0.48);
-      const q=project(worldToCamera(px,1.08,pz),state._cx,state._cy,state._scale);
-      state.ctx.beginPath(); state.ctx.arc(q.x,q.y,3.2,0,Math.PI*2);
-      state.ctx.fillStyle=dev.category==='Safety'?'#d9785a':(dev.category==='Lighting'?'#e5bf4a':'#4d8791'); state.ctx.fill();
-      state.ctx.strokeStyle='rgba(255,255,255,.9)'; state.ctx.lineWidth=1; state.ctx.stroke();
-      shown++;
+  function polygon2D(room) {
+    const p = Array.isArray(room.polygon) ? room.polygon : [];
+    if (p.length >= 3) {
+      return p.map(v => ({
+        x: Number(v.x || 0) / 100 * state.floorW - state.floorW / 2,
+        z: Number(v.y || 0) / 100 * state.floorD - state.floorD / 2
+      }));
     }
+
+    const x = Number(room.x || 0) - state.floorW / 2;
+    const z = Number(room.y || 0) - state.floorD / 2;
+    const w = Number(room.width || 0);
+    const d = Number(room.depth || 0);
+    if (w <= 0 || d <= 0) return [];
+    return [
+      {x:x,z:z},
+      {x:x+w,z:z},
+      {x:x+w,z:z+d},
+      {x:x,z:z+d}
+    ];
   }
 
-  function drawRoomFurniture(r){
-    const t=String(r.type||'other').toLowerCase();
-    if(t==='master_bedroom'||t==='bedroom'||t.includes('bed')) return drawBed(r);
-    if(t==='reception'||t==='living_room'||t==='living') return drawSofa(r);
-    if(t==='dining') return drawDining(r);
-    if(t==='kitchen') return drawKitchen(r);
-    if(t==='bathroom') return drawBathroom(r);
-    if(t==='office') return drawOffice(r);
-    if(t==='laundry'||t==='utility'){
-      const x=Number(r.x||0),z=Number(r.y||0),w=Number(r.width||2),d=Number(r.depth||2);
-      drawFurnitureBox(x+w*.12,z+d*.15,w*.28,d*.25,.82,'#c4c7c6');
-      drawFurnitureBox(x+w*.52,z+d*.15,w*.28,d*.25,.82,'#d0d1cf');
+  function envelope2D() {
+    const p = Array.isArray(state.floor?.envelope?.points) ? state.floor.envelope.points : [];
+    if (p.length >= 3) {
+      return p.map(v => ({
+        x: Number(v.x || 0) / 100 * state.floorW - state.floorW / 2,
+        z: Number(v.y || 0) / 100 * state.floorD - state.floorD / 2
+      }));
     }
-  }
-
-  function polygonWorld(room, fw, fd){
-    const pts=Array.isArray(room.polygon)?room.polygon:[];
-    if(pts.length>=3) return pts.map(pt=>({x:Number(pt.x||0)/100*fw-fw/2,z:Number(pt.y||0)/100*fd-fd/2}));
-    const x=Number(room.x||0),z=Number(room.y||0),w=Number(room.width||1),d=Number(room.depth||1);
-    return [{x:x-fw/2,z:z-fd/2},{x:x+w-fw/2,z:z-fd/2},{x:x+w-fw/2,z:z+d-fd/2},{x:x-fw/2,z:z+d-fd/2}];
-  }
-
-  function drawExtrudedRoom(room, fw, fd){
-    const base=polygonWorld(room,fw,fd); if(base.length<3)return;
-    const h=2.15, ceiling=2.35;
-    const bottom=base.map(p=>[p.x,0,p.z]), top=base.map(p=>[p.x,h,p.z]);
-    const bot2=bottom.map(p=>project(worldToCamera(p[0],p[1],p[2]),state._cx,state._cy,state._scale));
-    const top2=top.map(p=>project(worldToCamera(p[0],p[1],p[2]),state._cx,state._cy,state._scale));
-    const floorPath=new Path2D(); floorPath.moveTo(bot2[0].x,bot2[0].y); for(let i=1;i<bot2.length;i++)floorPath.lineTo(bot2[i].x,bot2[i].y); floorPath.closePath();
-    const floorTone = room.needs_review ? '#e4cf9e' : ({
-      kitchen:'#d9d5cc', bathroom:'#d7dfe2', master_bedroom:'#d8c7b2', bedroom:'#d9cdbd',
-      reception:'#d8c5aa', living_room:'#d7c3a7', dining:'#d8c7ad', office:'#d5d5cf'
-    }[String(room.type||'').toLowerCase()] || '#d8c3a9');
-    state.ctx.fillStyle=floorTone;state.ctx.fill(floorPath);state.ctx.strokeStyle='#8c7968';state.ctx.lineWidth=1;state.ctx.stroke(floorPath);
-    // subtle plank/tile guides to make the model read like an architectural preview
-    for(let gx=-30;gx<50;gx+=0.55){
-      const a=project(worldToCamera(gx,0.02,-40),state._cx,state._cy,state._scale);
-      const b=project(worldToCamera(gx,0.02,40),state._cx,state._cy,state._scale);
-      state.ctx.strokeStyle='rgba(110,95,82,.10)';state.ctx.lineWidth=.45;state.ctx.beginPath();state.ctx.moveTo(a.x,a.y);state.ctx.lineTo(b.x,b.y);state.ctx.stroke();
-    }
-    for(let i=0;i<base.length;i++){
-      const j=(i+1)%base.length;
-      const wall=[bot2[i],bot2[j],top2[j],top2[i]];
-      const path=new Path2D();path.moveTo(wall[0].x,wall[0].y);wall.slice(1).forEach(q=>path.lineTo(q.x,q.y));path.closePath();
-      const wallTone = state.selectedRoom === room.id ? '#c6d9d7' : (i%3===0 ? '#eeeae5' : '#ddd7cf'); state.ctx.fillStyle=wallTone; state.ctx.fill(path); state.ctx.strokeStyle='#756f69'; state.ctx.lineWidth=1.2; state.ctx.stroke(path);
-    }
-    // opening markers: preliminary placement along the first room edge, proportional to count.
-    const edgeLen=base.length?Math.hypot(base[1].x-base[0].x,base[1].z-base[0].z):0;
-    const markers=(room.doors||0)+(room.windows||0);
-    if(markers && edgeLen>0){
-      const p0=base[0],p1=base[1];
-      const dx=p1.x-p0.x,dz=p1.z-p0.z;
-      const nx=-dz/Math.max(edgeLen,.001),nz=dx/Math.max(edgeLen,.001);
-      const count=Math.min(8,markers);
-      for(let k=0;k<count;k++){
-        const t=(k+1)/(count+1),mx=p0.x+dx*t,mz=p0.z+dz*t;
-        const q1=project(worldToCamera(mx,1.0,mz),state._cx,state._cy,state._scale);
-        const q2=project(worldToCamera(mx+nx*.18,1.0,mz+nz*.18),state._cx,state._cy,state._scale);
-        state.ctx.strokeStyle=k<(room.doors||0)?'#7a5b42':'#4f7880'; state.ctx.lineWidth=2; state.ctx.beginPath();state.ctx.moveTo(q1.x,q1.y);state.ctx.lineTo(q2.x,q2.y);state.ctx.stroke();
+    const rooms = floorRooms();
+    if (rooms.length) {
+      const polys = rooms.map(polygon2D).filter(p => p.length);
+      const xs = polys.flatMap(p => p.map(v => v.x));
+      const zs = polys.flatMap(p => p.map(v => v.z));
+      if (xs.length && zs.length) {
+        return [
+          {x:Math.min.apply(null,xs),z:Math.min.apply(null,zs)},
+          {x:Math.max.apply(null,xs),z:Math.min.apply(null,zs)},
+          {x:Math.max.apply(null,xs),z:Math.max.apply(null,zs)},
+          {x:Math.min.apply(null,xs),z:Math.max.apply(null,zs)}
+        ];
       }
     }
-    const roomForFurniture={...room,x:(base.reduce((a,p)=>a+p.x,0)/base.length)+fw/2,y:(base.reduce((a,p)=>a+p.z,0)/base.length)+fd/2,width:Math.max(2,Math.max(...base.map(p=>p.x))-Math.min(...base.map(p=>p.x))),depth:Math.max(2,Math.max(...base.map(p=>p.z))-Math.min(...base.map(p=>p.z)))};
-    drawRoomFurniture(roomForFurniture);
-    drawDeviceMarkers(roomForFurniture);
-    const label=project(worldToCamera((base.reduce((a,p)=>a+p.x,0)/base.length),ceiling,(base.reduce((a,p)=>a+p.z,0)/base.length)),state._cx,state._cy,state._scale);
-    state.ctx.fillStyle=state.selectedRoom===room.id?'#0d3941':'rgba(36,51,58,.78)';state.ctx.font=state.selectedRoom===room.id?'700 12px Arial':'600 10px Arial';state.ctx.textAlign='center';state.ctx.fillText(String(room.name||'Room').slice(0,24),label.x,label.y);
-    state.roomMeshes.push({id:room.id,polygon:top2,room});
+    return [
+      {x:-state.floorW/2,z:-state.floorD/2},
+      {x: state.floorW/2,z:-state.floorD/2},
+      {x: state.floorW/2,z: state.floorD/2},
+      {x:-state.floorW/2,z: state.floorD/2}
+    ];
   }
 
-  function draw3D() {
-    if (!state.ctx || !state.canvas) return;
-    const rect=state.canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),w=Math.max(420,rect.width||700),h=Math.max(360,rect.height||520);
-    state.canvas.width=Math.round(w*dpr);state.canvas.height=Math.round(h*dpr);state.ctx.setTransform(dpr,0,0,dpr,0,0);state.ctx.clearRect(0,0,w,h);
-    const bg=state.ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#f7f8fa');bg.addColorStop(1,'#e8ecef');state.ctx.fillStyle=bg;state.ctx.fillRect(0,0,w,h);
-    const rooms=currentRooms(), floor=(state.model.floors||[]).find(f=>Number(f.floor_number)===Number(state.selectedFloor));
-    const fw=Number(floor?.width_m||Math.max(...rooms.map(r=>Number(r.x||0)+Number(r.width||0)),12));
-    const fd=Number(floor?.depth_m||Math.max(...rooms.map(r=>Number(r.y||0)+Number(r.depth||0)),10));
-    const repairedRooms=repairRoomLayout(rooms,fw,fd);
-    const maxDim=Math.max(fw,fd,10);
-    const scale=Math.min((w-70)/maxDim,(h-85)/(maxDim*0.78))*state.zoom;
-    state._cx=w/2;state._cy=h*.66;state._scale=scale;state.roomMeshes=[];
-    // floor slab
-    const slab=[[-fw/2,-.08,-fd/2],[fw/2,-.08,-fd/2],[fw/2,-.08,fd/2],[-fw/2,-.08,fd/2]].map(p=>project(worldToCamera(p[0],p[1],p[2]),state._cx,state._cy,state._scale));
-    const slabPath=new Path2D();slabPath.moveTo(slab[0].x,slab[0].y);slab.slice(1).forEach(q=>slabPath.lineTo(q.x,q.y));slabPath.closePath();state.ctx.fillStyle='#c9b8a4';state.ctx.fill(slabPath);state.ctx.strokeStyle='#817366';state.ctx.stroke(slabPath);
-    repairedRooms.slice().sort((a,b)=>Number(a.y||0)-Number(b.y||0)).forEach(r=>drawExtrudedRoom(r,fw,fd));
-    state.ctx.fillStyle='#4c5960';state.ctx.font='600 12px Arial';state.ctx.textAlign='left';state.ctx.fillText(`${tr('Floor', 'الدور')} ${state.selectedFloor} • ${repairedRooms.length} ${tr('rooms', 'غرف')}`,14,22);
-    state.ctx.fillStyle='#65747b';state.ctx.font='11px Arial';state.ctx.fillText(tr('Architectural cutaway • furnished schematic • preliminary digital twin', 'مخطط معماري مجسم • تأثيث تخطيطي • نموذج رقمي أولي'),14,40);
+  function bounds(poly) {
+    if (!poly || !poly.length) return {minX:0,maxX:0,minZ:0,maxZ:0,width:0,depth:0,cx:0,cz:0};
+    const xs = poly.map(p => p.x), zs = poly.map(p => p.z);
+    const minX = Math.min.apply(null,xs), maxX = Math.max.apply(null,xs);
+    const minZ = Math.min.apply(null,zs), maxZ = Math.max.apply(null,zs);
+    return {minX:minX,maxX:maxX,minZ:minZ,maxZ:maxZ,width:maxX-minX,depth:maxZ-minZ,cx:(minX+maxX)/2,cz:(minZ+maxZ)/2};
   }
 
-  function pointInPolygon(pt, poly) {
+  function pointInPoly(x,z,poly) {
     let inside = false;
-    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
-      const intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj-xi)*(pt.y-yi)/(yj-yi || 1e-9)+xi);
-      if (intersect) inside = !inside;
+    for (let i=0,j=poly.length-1;i<poly.length;j=i++) {
+      const xi=poly[i].x, zi=poly[i].z, xj=poly[j].x, zj=poly[j].z;
+      const hit=((zi>z)!==(zj>z)) && (x < (xj-xi)*(z-zi)/(zj-zi || 1e-9)+xi);
+      if (hit) inside=!inside;
     }
     return inside;
   }
 
-  function handle3DClick(e) {
-    const rect = state.canvas.getBoundingClientRect();
-    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    const hit = [...state.roomMeshes].reverse().find(m => pointInPolygon(pt, m.polygon));
-    if (!hit) return;
-    state.selectedRoom = hit.id;
-    showRoomDetails(hit.room);
+  function pointSegmentDistance(p,a,b) {
+    const vx=b.x-a.x, vz=b.z-a.z, wx=p.x-a.x, wz=p.z-a.z;
+    const vv=vx*vx+vz*vz || 1;
+    const t=Math.max(0,Math.min(1,(wx*vx+wz*vz)/vv));
+    const q={x:a.x+t*vx,z:a.z+t*vz};
+    return Math.hypot(p.x-q.x,p.z-q.z);
+  }
+
+  function insideFootprint(poly,cx,cz,w,d,ang,clearance) {
+    if (!poly || poly.length < 3) return false;
+    const c=Math.cos(ang), s=Math.sin(ang), hw=w/2, hd=d/2;
+    const pts=[[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd],[0,0]];
+    for (const q of pts) {
+      const x=cx+q[0]*c-q[1]*s, z=cz+q[0]*s+q[1]*c;
+      if (!pointInPoly(x,z,poly)) return false;
+      if (clearance > 0) {
+        for (let i=0;i<poly.length;i++) {
+          if (pointSegmentDistance({x:x,z:z},poly[i],poly[(i+1)%poly.length]) < clearance) return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function footprintOverlaps(a,b,gap) {
+    const aw=(Math.abs(a.w*Math.cos(a.a||0))+Math.abs(a.d*Math.sin(a.a||0)))/2+gap;
+    const ad=(Math.abs(a.w*Math.sin(a.a||0))+Math.abs(a.d*Math.cos(a.a||0)))/2+gap;
+    const bw=(Math.abs(b.w*Math.cos(b.a||0))+Math.abs(b.d*Math.sin(b.a||0)))/2+gap;
+    const bd=(Math.abs(b.w*Math.sin(b.a||0))+Math.abs(b.d*Math.cos(b.a||0)))/2+gap;
+    return Math.abs(a.x-b.x) < aw+bw && Math.abs(a.z-b.z) < ad+bd;
+  }
+
+  function occupiedOk(candidate, occupied) {
+    return !occupied.some(o => footprintOverlaps(candidate,o,0.07));
+  }
+
+  function place(room, w, d, occupied, angles) {
+    const poly=polygon2D(room), b=bounds(poly);
+    if(poly.length<3 || b.width<=0 || b.depth<=0) return null;
+    const candidates=[
+      [b.cx,b.cz],
+      [b.minX+b.width*.22,b.minZ+b.depth*.22],
+      [b.minX+b.width*.78,b.minZ+b.depth*.22],
+      [b.minX+b.width*.22,b.minZ+b.depth*.78],
+      [b.minX+b.width*.78,b.minZ+b.depth*.78],
+      [b.cx,b.minZ+b.depth*.22],
+      [b.cx,b.minZ+b.depth*.78],
+      [b.minX+b.width*.25,b.cz],
+      [b.minX+b.width*.75,b.cz]
+    ];
+    const scales=[1,.94,.88,.82,.76,.70,.64];
+    const angs=angles && angles.length?angles:[0,Math.PI/2];
+    for(const sc of scales){
+      for(const a of angs){
+        const ww=w*sc, dd=d*sc;
+        for(const p of candidates){
+          const c={x:p[0],z:p[1],w:ww,d:dd,a:a};
+          if(insideFootprint(poly,c.x,c.z,c.w,c.d,c.a,.10) && occupiedOk(c,occupied)) return c;
+        }
+      }
+    }
+    return null;
+  }
+
+  function orientForRoom(room) {
+    const b=bounds(polygon2D(room));
+    return b.width >= b.depth ? [0,Math.PI/2] : [Math.PI/2,0];
+  }
+
+  function addCarpet(g, w, d) {
+    return add(g, box(w,0.025,d,0xcac0b2,0.96,0),0,0.015,0);
+  }
+
+  function makeBed(room,g,occ) {
+    const b=bounds(polygon2D(room));
+    const p=place(room,Math.min(2.15,Math.max(1.45,b.width*.58)),Math.min(2.25,Math.max(1.75,b.depth*.50)),occ,orientForRoom(room));
+    if(!p) return;
+    occ.push(p);
+    const bed=group();
+    add(bed,box(p.w,.26,p.d,COLORS.woodDark,.72),0,.23,0);
+    add(bed,box(p.w-.08,.10,p.d-.12,0xf1ece4,.96),0,.41,0);
+    add(bed,box(p.w,.95,.12,COLORS.woodDark,.72),0,.72,-p.d/2+.04);
+    add(bed,box(p.w*.34,.11,Math.min(.46,p.d*.20),0xf9f4ec,.98),-p.w*.21,.50,-p.d*.29);
+    add(bed,box(p.w*.34,.11,Math.min(.46,p.d*.20),0xf9f4ec,.98),p.w*.21,.50,-p.d*.29);
+    add(bed,cyl(.025,.18,COLORS.metal,12,.35,.65),-p.w*.43,.09,p.d*.42);
+    add(bed,cyl(.025,.18,COLORS.metal,12,.35,.65),p.w*.43,.09,p.d*.42);
+    add(bed,cyl(.025,.18,COLORS.metal,12,.35,.65),-p.w*.43,.09,-p.d*.42);
+    add(bed,cyl(.025,.18,COLORS.metal,12,.35,.65),p.w*.43,.09,-p.d*.42);
+    add(g,addCarpet(bed,p.w*.92,p.d*.92),0,0,0,p.a);
+    bed.position.set(p.x,.03,p.z); bed.rotation.y=p.a; g.add(bed);
+
+    for(const side of [-1,1]){
+      const np=place(room,.48,.48,occ,[p.a]);
+      if(!np) continue;
+      np.x=p.x+side*(p.w*.5+.32)*Math.cos(p.a);
+      np.z=p.z+side*(p.w*.5+.32)*Math.sin(p.a);
+      if(!insideFootprint(polygon2D(room),np.x,np.z,np.w,np.d,p.a,.07)||!occupiedOk(np,occ)) continue;
+      occ.push(np);
+      const ng=group();
+      add(ng,box(np.w,.36,np.d,COLORS.wood,.72),0,.20,0);
+      add(ng,cyl(.025,.40,COLORS.metal,12,.4,.3),0,.57,0);
+      ng.position.set(np.x,.03,np.z); ng.rotation.y=p.a; g.add(ng);
+    }
+
+    const wp=place(room,Math.min(1.75,b.width*.32),.56,occ,[p.a,p.a+Math.PI/2]);
+    if(wp){
+      occ.push(wp);
+      const wg=group();
+      add(wg,box(wp.w,2.0,wp.d,COLORS.woodDark,.70),0,1,0);
+      add(wg,box(.025,1.75,.025,COLORS.metal,.45,.6),-wp.w*.18,1.0,wp.d/2+.03);
+      add(wg,box(.025,1.75,.025,COLORS.metal,.45,.6),wp.w*.18,1.0,wp.d/2+.03);
+      wg.position.set(wp.x,.03,wp.z); wg.rotation.y=wp.a; g.add(wg);
+    }
+  }
+
+  function makeSofa(room,g,occ) {
+    const b=bounds(polygon2D(room));
+    const p=place(room,Math.min(3.15,Math.max(1.9,b.width*.68)),Math.min(1.0,Math.max(.72,b.depth*.23)),occ,orientForRoom(room));
+    if(!p) return;
+    occ.push(p);
+    const sg=group();
+    add(sg,box(p.w,.42,p.d,COLORS.fabric,.92),0,.34,0);
+    add(sg,box(p.w,.66,.24,COLORS.fabricLight,.96),0,.82,-p.d*.34);
+    add(sg,box(p.w*.27,.12,p.d*.56,COLORS.fabricLight,.98,-1),-p.w*.30,.57,.02);
+    add(sg,box(p.w*.27,.12,p.d*.56,COLORS.fabricLight,.98),0,.57,.02);
+    add(sg,box(p.w*.27,.12,p.d*.56,COLORS.fabricLight,.98),p.w*.30,.57,.02);
+    add(sg,box(.18,.08,p.d*.82,COLORS.woodDark,.7),-p.w*.44,.12,0);
+    add(sg,box(.18,.08,p.d*.82,COLORS.woodDark,.7),p.w*.44,.12,0);
+    sg.position.set(p.x,.03,p.z); sg.rotation.y=p.a; g.add(sg);
+
+    const tp=place(room,.95,.58,occ,[p.a,p.a+Math.PI/2]);
+    if(tp){
+      occ.push(tp);
+      const tg=group();
+      add(tg,box(tp.w,.08,tp.d,COLORS.wood,.76),0,.40,0);
+      add(tg,cyl(.03,.37,COLORS.metal,12,.42,.5),-.34,.19,-.20);
+      add(tg,cyl(.03,.37,COLORS.metal,12,.42,.5),.34,.19,-.20);
+      add(tg,cyl(.03,.37,COLORS.metal,12,.42,.5),-.34,.19,.20);
+      add(tg,cyl(.03,.37,COLORS.metal,12,.42,.5),.34,.19,.20);
+      tg.position.set(tp.x,.03,tp.z); tg.rotation.y=tp.a; g.add(tg);
+    }
+  }
+
+  function makeDining(room,g,occ) {
+    const b=bounds(polygon2D(room));
+    const p=place(room,Math.min(1.75,Math.max(1.2,b.width*.44)),Math.min(1.0,Math.max(.75,b.depth*.30)),occ,orientForRoom(room));
+    if(!p) return;
+    occ.push(p);
+    const tg=group();
+    add(tg,box(p.w,.12,p.d,COLORS.wood,.75),0,.74,0);
+    add(tg,cyl(.045,.70,COLORS.woodDark,14,.65),-p.w*.38,.35,-p.d*.35);
+    add(tg,cyl(.045,.70,COLORS.woodDark,14,.65),p.w*.38,.35,-p.d*.35);
+    add(tg,cyl(.045,.70,COLORS.woodDark,14,.65),-p.w*.38,.35,p.d*.35);
+    add(tg,cyl(.045,.70,COLORS.woodDark,14,.65),p.w*.38,.35,p.d*.35);
+    tg.position.set(p.x,.03,p.z); tg.rotation.y=p.a; g.add(tg);
+    const chairPts=[[-1,-1],[1,-1],[-1,1],[1,1]];
+    chairPts.forEach(q=>{
+      const cp=place(room,.46,.46,occ,[p.a]);
+      if(!cp) return;
+      cp.x=p.x+q[0]*(p.w*.52); cp.z=p.z+q[1]*(p.d*.62);
+      if(!insideFootprint(polygon2D(room),cp.x,cp.z,cp.w,cp.d,p.a,.05)||!occupiedOk(cp,occ)) return;
+      occ.push(cp);
+      const cg=group();
+      add(cg,box(.42,.10,.42,COLORS.fabric,.95),0,.38,0);
+      add(cg,cyl(.025,.36,COLORS.woodDark,10,.7),0,.18,0);
+      cg.position.set(cp.x,.03,cp.z); cg.rotation.y=cp.a; g.add(cg);
+    });
+  }
+
+  function makeKitchen(room,g,occ) {
+    const poly=polygon2D(room), b=bounds(poly), horizontal=b.width>=b.depth;
+    const cw=Math.min(horizontal?b.width:b.depth,4.2), cd=.58;
+    const cp=place(room,cw,cd,occ,horizontal?[0,Math.PI/2]:[Math.PI/2,0]);
+    if(cp){
+      occ.push(cp);
+      const cg=group();
+      add(cg,box(cp.w,.88,cp.d,0xd9d4cb,.72),0,.47,0);
+      add(cg,box(cp.w+.02,.05,cp.d+.03,0xf4efe6,.45),0,.94,0);
+      add(cg,box(.55,.82,.52,0xaeb1af,.38,.25),-cp.w*.28,.48,0);
+      add(cg,box(.58,.82,.52,0xaeb1af,.38,.25),cp.w*.28,.48,0);
+      cg.position.set(cp.x,.03,cp.z); cg.rotation.y=cp.a; g.add(cg);
+    }
+    const fridge=place(room,.72,.72,occ,[0,Math.PI/2]);
+    if(fridge){
+      occ.push(fridge);
+      const fg=group();
+      add(fg,box(.72,1.95,.72,0xd6d9d8,.35,.4),0,.99,0);
+      add(fg,box(.40,.025,.025,COLORS.metal,.35,.7),0,1.04,.365);
+      fg.position.set(fridge.x,.03,fridge.z); fg.rotation.y=fridge.a; g.add(fg);
+    }
+    if(b.width>3.2 && b.depth>2.9){
+      const ip=place(room,Math.min(1.6,b.width*.30),Math.min(.72,b.depth*.22),occ,[0,Math.PI/2]);
+      if(ip){
+        occ.push(ip);
+        const ig=group();
+        add(ig,box(ip.w,.90,ip.d,0xd5d0c7,.7),0,.46,0);
+        add(ig,box(ip.w+.03,.05,ip.d+.03,0xf4efe6,.45),0,.95,0);
+        ig.position.set(ip.x,.03,ip.z); ig.rotation.y=ip.a; g.add(ig);
+      }
+    }
+  }
+
+  function makeBathroom(room,g,occ) {
+    const sink=place(room,.65,.45,occ,[0,Math.PI/2]);
+    if(sink){
+      occ.push(sink);
+      const sg=group();
+      add(sg,box(.65,.16,.45,COLORS.ceramic,.48),0,.56,0);
+      add(sg,cyl(.035,.44,COLORS.metal,14,.35,.65),0,.32,0);
+      sg.position.set(sink.x,.03,sink.z); sg.rotation.y=sink.a; g.add(sg);
+    }
+    const toilet=place(room,.62,.90,occ,[0,Math.PI/2]);
+    if(toilet){
+      occ.push(toilet);
+      const tg=group();
+      add(tg,box(.62,.34,.72,COLORS.ceramic,.5),0,.20,0);
+      add(tg,box(.44,.16,.40,COLORS.ceramic,.5),0,.46,-.08);
+      tg.position.set(toilet.x,.03,toilet.z); tg.rotation.y=toilet.a; g.add(tg);
+    }
+    const shower=place(room,.90,.90,occ,[0,Math.PI/2]);
+    if(shower){
+      occ.push(shower);
+      const sh=group();
+      add(sh,box(.90,.04,.90,0xe0e5e4,.25,.2),0,.04,0);
+      add(sh,box(.025,1.85,.86,COLORS.glass,.12,.15),-.43,.95,0);
+      add(sh,cyl(.024,1.86,COLORS.metal,12,.35,.7),-.40,.93,-.40);
+      sh.position.set(shower.x,.03,shower.z); sh.rotation.y=shower.a; g.add(sh);
+    }
+  }
+
+  function makeOffice(room,g,occ) {
+    const b=bounds(polygon2D(room));
+    const p=place(room,Math.min(1.7,Math.max(1.05,b.width*.42)),.62,occ,orientForRoom(room));
+    if(!p) return;
+    occ.push(p);
+    const dg=group();
+    add(dg,box(p.w,.10,p.d,COLORS.wood,.75),0,.76,0);
+    add(dg,cyl(.035,.72,COLORS.metal,12,.4,.6),-.55*p.w,.36,-.20);
+    add(dg,cyl(.035,.72,COLORS.metal,12,.4,.6),.55*p.w,.36,-.20);
+    dg.position.set(p.x,.03,p.z); dg.rotation.y=p.a; g.add(dg);
+    const cp=place(room,.48,.48,occ,[p.a]);
+    if(cp){
+      cp.x=p.x-p.w*.42*Math.cos(p.a); cp.z=p.z-p.w*.42*Math.sin(p.a);
+      if(insideFootprint(polygon2D(room),cp.x,cp.z,cp.w,cp.d,cp.a,.06)&&occupiedOk(cp,occ)){
+        occ.push(cp);
+        const cg=group();
+        add(cg,box(.48,.12,.48,COLORS.fabric,.92),0,.42,0);
+        add(cg,cyl(.03,.40,COLORS.metal,12,.4,.5),0,.20,0);
+        cg.position.set(cp.x,.03,cp.z); g.add(cg);
+      }
+    }
+  }
+
+  function makeUtility(room,g,occ) {
+    const b=bounds(polygon2D(room));
+    const p=place(room,Math.min(.76,b.width*.34),Math.min(.72,b.depth*.28),occ,[0,Math.PI/2]);
+    if(!p) return;
+    occ.push(p);
+    const wg=group();
+    add(wg,box(p.w,.86,p.d,0xd6d9d8,.38,.3),0,.44,0);
+    add(wg,cyl(Math.min(.21,p.w*.28),.05,0xb9bec0,24,.25,.1),0,.49,.05);
+    wg.position.set(p.x,.03,p.z); wg.rotation.y=p.a; g.add(wg);
+  }
+
+  function buildFurniture(room,g) {
+    if(!state.showFurniture) return;
+    const occ=[];
+    const t=String(room.type||'other').toLowerCase();
+    if(t==='master_bedroom'||t==='bedroom') makeBed(room,g,occ);
+    else if(t==='reception'||t==='living_room') makeSofa(room,g,occ);
+    else if(t==='dining') makeDining(room,g,occ);
+    else if(t==='kitchen') makeKitchen(room,g,occ);
+    else if(t==='bathroom') makeBathroom(room,g,occ);
+    else if(t==='office') makeOffice(room,g,occ);
+    else if(t==='laundry'||t==='utility') makeUtility(room,g,occ);
+  }
+
+  function shapeFromPoly(poly) {
+    const s=new THREE.Shape();
+    if(!poly.length) return s;
+    s.moveTo(poly[0].x,poly[0].z);
+    for(let i=1;i<poly.length;i++) s.lineTo(poly[i].x,poly[i].z);
+    s.closePath();
+    return s;
+  }
+
+  function roomFloor(room,g) {
+    const poly=polygon2D(room);
+    if(poly.length<3)return;
+    const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shapeFromPoly(poly)),mat(room.needs_review?0xf1e1b9:COLORS.floor,.98));
+    mesh.rotation.x=-Math.PI/2;
+    mesh.position.y=.01;
+    mesh.userData.roomId=room.id;
+    mesh.receiveShadow=true;
+    g.add(mesh);
+  }
+
+  function edgeKey(a,b) {
+    const pa=a.x.toFixed(2)+','+a.z.toFixed(2);
+    const pb=b.x.toFixed(2)+','+b.z.toFixed(2);
+    return pa<pb?pa+'|'+pb:pb+'|'+pa;
+  }
+
+  function addWallSegment(a,b,height,thickness,color,g) {
+    const dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz);
+    if(len<.05)return;
+    const m=box(len,height,thickness,color,.72,0);
+    m.position.set((a.x+b.x)/2,height/2,(a.z+b.z)/2);
+    m.rotation.y=-Math.atan2(dz,dx);
+    g.add(m);
+  }
+
+  function renderWalls(g) {
+    if(!state.showWalls)return;
+    const edges=new Map();
+
+    const addEdge=(a,b,type,thickness)=>{
+      const k=edgeKey(a,b);
+      if(edges.has(k))return;
+      edges.set(k,{a:a,b:b,type:type||'interior',thickness:thickness});
+    };
+
+    (state.floor?.walls||[]).forEach(w=>{
+      const pts=Array.isArray(w.points)?w.points:[];
+      if(pts.length>=2){
+        addEdge(
+          {x:Number(pts[0].x)/100*state.floorW-state.floorW/2,z:Number(pts[0].y)/100*state.floorD-state.floorD/2},
+          {x:Number(pts[1].x)/100*state.floorW-state.floorW/2,z:Number(pts[1].y)/100*state.floorD-state.floorD/2},
+          w.type,w.thickness_m
+        );
+      }
+    });
+
+    const env=envelope2D();
+    for(let i=0;i<env.length;i++) addEdge(env[i],env[(i+1)%env.length],'exterior',.18);
+
+    floorRooms().forEach(room=>{
+      const p=polygon2D(room);
+      if(p.length>=2)for(let i=0;i<p.length;i++)addEdge(p[i],p[(i+1)%p.length],'interior',null);
+    });
+
+    edges.forEach(e=>addWallSegment(e.a,e.b,2.65,e.thickness||.13,e.type==='exterior'?COLORS.exterior:COLORS.wall,g));
+  }
+
+  function addOpeningMarkers(room,g) {
+    if(!state.showLabels)return;
+    const addOne=(o,isWin)=>{
+      const x=Number(o.x||0)/100*state.floorW-state.floorW/2;
+      const z=Number(o.y||0)/100*state.floorD-state.floorD/2;
+      const width=Math.max(.18,Math.min(isWin?1.7:1.15,Number(o.width_pct||6)/100*Math.min(state.floorW,state.floorD)));
+      const m=box(width,.045,isWin?.055:.16,isWin?COLORS.glass:COLORS.woodDark,.18,.15);
+      m.position.set(x,.55,z);
+      g.add(m);
+    };
+    (room.door_details||[]).forEach(o=>addOne(o,false));
+    (room.window_details||[]).forEach(o=>addOne(o,true));
+  }
+
+  function addDevices(room,g) {
+    if(!state.showDevices)return;
+    const poly=polygon2D(room), b=bounds(poly);
+    const ds=(state.model.devices||[]).filter(d=>d.room===room.name);
+    if(!ds.length||poly.length<3)return;
+    let idx=0;
+    ds.forEach(dev=>{
+      const qty=Math.max(1,Math.min(12,Number(dev.qty||1)));
+      for(let i=0;i<qty;i++){
+        const col=dev.category==='Safety'?0xd47d64:(dev.category==='Lighting'?0xe2b44f:COLORS.accent);
+        const cols=Math.min(4,qty);
+        let x=b.minX+b.width*(.30+(i%cols)*(.40/Math.max(1,cols-1)));
+        let z=b.minZ+b.depth*(.30+Math.floor(i/cols)*.36);
+        if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
+        const m=sphere(.075,col,.42,.18);
+        m.position.set(x,2.58,z);
+        m.userData.roomId=room.id;
+        g.add(m);
+        idx++;
+      }
+    });
+  }
+
+  function buildFloor3D() {
+    if(!state.root||!state.floor)return;
+    while(state.root.children.length){
+      const child=state.root.children.pop();
+      child.traverse(o=>{
+        if(o.geometry)o.geometry.dispose();
+        if(o.material){
+          const ms=Array.isArray(o.material)?o.material:[o.material];
+          ms.forEach(mm=>mm.dispose&&mm.dispose());
+        }
+      });
+    }
+    state.rooms3d.clear();
+
+    state.floorW=Math.max(.1,Number(state.floor.width_m||12));
+    state.floorD=Math.max(.1,Number(state.floor.depth_m||10));
+    const env=envelope2D();
+
+    const base=group();
+    const slab=new THREE.Mesh(new THREE.ShapeGeometry(shapeFromPoly(env)),mat(COLORS.slab,.96));
+    slab.rotation.x=-Math.PI/2;slab.position.y=-.08;slab.receiveShadow=true;base.add(slab);
+    state.root.add(base);
+
+    floorRooms().forEach(room=>{
+      const rg=group();
+      rg.userData.roomId=room.id;
+      roomFloor(room,rg);
+      buildFurniture(room,rg);
+      addDevices(room,rg);
+      addOpeningMarkers(room,rg);
+      state.root.add(rg);
+      state.rooms3d.set(room.id,rg);
+    });
+
+    const walls=group();
+    renderWalls(walls);
+    state.root.add(walls);
+
+    const foundation=box(state.floorW+.9,.07,state.floorD+.9,0xc3bdb3,.98);
+    foundation.position.y=-.13;foundation.receiveShadow=true;state.root.add(foundation);
+
+    fitCamera();
     render2D();
-    draw3D();
+    if(state.selectedRoom) highlight3D(state.selectedRoom);
+  }
+
+  function rootBounds() {
+    return new THREE.Box3().setFromObject(state.root);
+  }
+
+  function fitCamera() {
+    if(!state.camera||!state.controls||!state.root)return;
+    const b=rootBounds(), size=b.getSize(new THREE.Vector3()), center=b.getCenter(new THREE.Vector3());
+    const maxDim=Math.max(size.x,size.y,size.z,.1);
+    const dist=maxDim*1.55;
+    state.camera.position.set(center.x+dist*.90,center.y+dist*.92,center.z+dist*.90);
+    state.camera.near=Math.max(.01,dist/200);
+    state.camera.far=Math.max(100,dist*30);
+    state.camera.updateProjectionMatrix();
+    state.controls.target.copy(center);
+    state.controls.minDistance=Math.max(1,dist*.14);
+    state.controls.maxDistance=Math.max(30,dist*8);
+    state.controls.update();
+  }
+
+  function topView() {
+    const b=rootBounds(), c=b.getCenter(new THREE.Vector3()), d=Math.max(state.floorW,state.floorD)*1.2;
+    state.camera.position.set(c.x,d*1.7,c.z+.01);
+    state.camera.lookAt(c);
+    state.controls.target.copy(c);
+    state.controls.update();
+  }
+
+  function highlight3D(id) {
+    state.rooms3d.forEach((g,rid)=>{
+      const active=rid===id;
+      g.traverse(o=>{
+        if(!o.isMesh||!o.material)return;
+        const ms=Array.isArray(o.material)?o.material:[o.material];
+        ms.forEach(m=>{
+          if(m.emissive){
+            m.emissive.setHex(active?0x234d45:0);
+            m.emissiveIntensity=active?.22:0;
+          }
+        });
+      });
+    });
+  }
+
+  function render2D() {
+    const el=$('floorPlan2d');
+    if(!state.floor){el.innerHTML='<div class="empty-state">'+esc(tr('No floor available.','لا يوجد دور متاح.'))+'</div>';return;}
+    const rooms=floorRooms();
+    if(!rooms.length){el.innerHTML='<div class="empty-state">'+esc(tr('No reliable rooms were detected for this floor.','لم يتم اكتشاف غرف موثوقة في هذا الدور.'))+'</div>';return;}
+
+    const env=Array.isArray(state.floor.envelope?.points)&&state.floor.envelope.points.length>=3?state.floor.envelope.points:[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100}];
+    const ps=p=>p.map(q=>Number(q.x).toFixed(2)+','+Number(q.y).toFixed(2)).join(' ');
+    const roomShapes=rooms.map(r=>{
+      let p=Array.isArray(r.polygon)&&r.polygon.length>=3?r.polygon:null;
+      if(!p){
+        p=[
+          {x:Number(r.x||0)/state.floorW*100,y:Number(r.y||0)/state.floorD*100},
+          {x:(Number(r.x||0)+Number(r.width||0))/state.floorW*100,y:Number(r.y||0)/state.floorD*100},
+          {x:(Number(r.x||0)+Number(r.width||0))/state.floorW*100,y:(Number(r.y||0)+Number(r.depth||0))/state.floorD*100},
+          {x:Number(r.x||0)/state.floorW*100,y:(Number(r.y||0)+Number(r.depth||0))/state.floorD*100}
+        ];
+      }
+      return {r:r,p:p};
+    });
+
+    const wallLines=(state.floor.walls||[]).map(w=>Array.isArray(w.points)&&w.points.length>=2?w.points:null).filter(Boolean);
+    const roomEls=roomShapes.map(x=>{
+      const selected=x.r.id===state.selectedRoom;
+      const fill=x.r.needs_review?'#f0dfa9':'#dceae7';
+      const stroke=selected?'#275d54':'#56756f';
+      return '<polygon points=\''+ps(x.p)+'\' class="plan-room-poly '+(x.r.needs_review?'review ':'')+(selected?'selected':'')+'" data-room-id=\''+esc(x.r.id)+'\' style="fill:'+fill+';stroke:'+stroke+';"></polygon>' +
+             '<text x=\''+(x.p.reduce((a,v)=>a+Number(v.x),0)/x.p.length).toFixed(2)+'\' y=\''+(x.p.reduce((a,v)=>a+Number(v.y),0)/x.p.length).toFixed(2)+'\' class="plan-room-label">'+esc(x.r.name)+'</text>';
+    }).join('');
+
+    const doorEls=rooms.flatMap(r=>(r.door_details||[]).map(d=>'<circle cx=\''+esc(d.x)+'\' cy=\''+esc(d.y)+'\' r="1.15" class="plan-door"></circle>')).join('');
+    const winEls=rooms.flatMap(r=>(r.window_details||[]).map(d=>'<rect x=\''+(Number(d.x||0)-1.4)+'\' y=\''+(Number(d.y||0)-.6)+'\' width="2.8" height="1.2" class="plan-window"></rect>')).join('');
+
+    el.innerHTML='<div class="plan-svg-wrap"><svg class="esso-plan-svg" viewBox="0 0 100 100" role="img" aria-label="'+esc(tr('AI reconstructed floor plan','المخطط المعاد بناؤه بالذكاء الاصطناعي'))+'">' +
+      '<polygon points=\''+ps(env)+'\' class="plan-envelope"></polygon>' +
+      wallLines.map(w=>'<polyline points=\''+ps(w)+'\' class="plan-wall"></polyline>').join('') +
+      roomEls+doorEls+winEls+
+      '<div class="plan-svg-note"></div></svg><div class="plan-scale-note">'+esc(tr('Normalized preliminary geometry — source drawing remains authoritative.','هندسة أولية بإحداثيات نسبية — الرسم الأصلي هو المرجع الأساسي.'))+'</div></div>';
+
+    el.querySelectorAll('[data-room-id]').forEach(node=>node.addEventListener('click',()=>{
+      state.selectedRoom=node.dataset.roomId;
+      showRoomDetails((state.model.rooms||[]).find(r=>r.id===state.selectedRoom)||null);
+      render2D();highlight3D(state.selectedRoom);
+    }));
+  }
+
+  function showRoomDetails(room) {
+    const b=$('roomDetails');
+    if(!room){b.hidden=true;return;}
+    const devices=(state.model.devices||[]).filter(d=>d.room===room.name);
+    const ev=room.evidence||{};
+    b.hidden=false;
+    b.innerHTML='<strong>'+esc(room.name)+'</strong>' +
+      '<span>'+esc(room.type||tr('Room','غرفة'))+(room.area_sqm?' • '+esc(room.area_sqm)+' m²':' • '+esc(tr('Area not verified','المساحة غير مؤكدة')))+'</span>' +
+      '<span>'+esc(tr('Confidence','الثقة'))+': '+Math.round(Number(room.confidence||0))+'%</span>' +
+      (ev.label_detected?'<span>Label: '+esc(ev.label_text)+'</span>':'') +
+      '<div>'+(devices.map(d=>esc(d.type)+' × '+esc(d.qty)).join('<br>')||esc(tr('No device data','لا توجد بيانات أجهزة')))+'</div>';
+  }
+
+  function renderFloors() {
+    const tabs=$('floorTabs');
+    const floors=state.model.floors||[];
+    tabs.innerHTML=floors.map(f=>'<button type="button" class="floor-tab '+(Number(f.floor_number)===Number(state.floor?.floor_number)?'active':'')+'" data-floor=\''+esc(f.floor_number)+'\'>'+esc(tr('Floor','الدور'))+' '+esc(f.floor_number)+'</button>').join('');
+    tabs.querySelectorAll('.floor-tab').forEach(b=>b.addEventListener('click',()=>{
+      state.floor=floors.find(f=>Number(f.floor_number)===Number(b.dataset.floor))||state.floor;
+      state.selectedRoom=null;
+      renderFloors();
+      buildFloor3D();
+      showRoomDetails(null);
+    }));
+  }
+
+  function renderStats() {
+    const rooms=state.model.rooms||[], devices=state.model.devices||[];
+    const review=rooms.filter(r=>r.needs_review).length;
+    const total=state.model.project?.area_sqm ?? state.project.project?.area ?? 'TBD';
+    $('viewerStats').innerHTML=[
+      [tr('Area','المساحة'),total!=='TBD'?String(total)+' m²':'TBD'],
+      [tr('Floors','الأدوار'),(state.model.floors||[]).length],
+      [tr('Rooms','الغرف'),rooms.length],
+      [tr('Devices','الأجهزة'),devices.length],
+      [tr('Needs review','تحتاج مراجعة'),review]
+    ].map(v=>'<div class="viewer-stat"><span>'+esc(v[0])+'</span><strong>'+esc(v[1])+'</strong></div>').join('');
+  }
+
+  function renderTables() {
+    const devices=state.model.devices||[], boq=state.model.boq||[];
+    $('deviceTable').innerHTML='<div class="table-scroll"><table class="smart-table"><thead><tr><th>'+tr('Room','الغرفة')+'</th><th>'+tr('Device','الجهاز')+'</th><th>'+tr('Qty','الكمية')+'</th><th>'+tr('Category','الفئة')+'</th><th>'+tr('Required','المطلوب')+'</th></tr></thead><tbody>'+
+      (devices.length?devices.map(d=>'<tr><td>'+esc(d.room)+'</td><td>'+esc(d.type)+'</td><td>'+esc(d.qty)+'</td><td>'+esc(d.category)+'</td><td>'+esc(d.required==='required'?tr('Yes','نعم'):tr('Recommended','موصى به'))+'</td></tr>').join(''):'<tr><td colspan="5">'+esc(tr('No devices generated.','لم يتم إنشاء أجهزة.'))+'</td></tr>')+
+      '</tbody></table></div>';
+    $('boqTable').innerHTML='<div class="table-scroll"><table class="smart-table"><thead><tr><th>'+tr('Category','الفئة')+'</th><th>'+tr('Item','البند')+'</th><th>'+tr('Qty','الكمية')+'</th><th>'+tr('Rooms','الغرف')+'</th><th>'+tr('Required','المطلوب')+'</th></tr></thead><tbody>'+
+      (boq.length?boq.map(b=>'<tr><td>'+esc(b.category)+'</td><td>'+esc(b.item)+'</td><td>'+esc(b.quantity)+'</td><td>'+esc((b.rooms||[]).join(', ')||tr('Project','المشروع'))+'</td><td>'+esc(b.required?tr('Yes','نعم'):tr('Recommended','موصى به'))+'</td></tr>').join(''):'<tr><td colspan="5">'+esc(tr('No BOQ generated.','لم يتم إنشاء BOQ.'))+'</td></tr>')+
+      '</tbody></table></div>';
+  }
+
+  function renderReview() {
+    const a=state.project.analysis||{};
+    const notes=[...(a.needs_review||[]),...(a.analysis_notes||[])];
+    const box=$('reviewBox');
+    if(!notes.length){box.hidden=true;return;}
+    box.hidden=false;
+    box.innerHTML='<strong>'+esc(tr('Engineering review required','تحتاج هذه النتائج إلى مراجعة هندسية'))+'</strong><ul>'+notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>';
+  }
+
+  function setup3D() {
+    const host=$('model3d');
+    host.innerHTML='<div class="model3d-toolbar">' +
+      '<button type="button" data-action="fit">'+tr('Fit View','ملاءمة العرض')+'</button>' +
+      '<button type="button" data-action="top">'+tr('Top View','المسقط')+'</button>' +
+      '<button type="button" data-action="walls">'+tr('Walls','الجدران')+'</button>' +
+      '<button type="button" data-action="furniture">'+tr('Furniture','الأثاث')+'</button>' +
+      '<button type="button" data-action="devices">'+tr('Devices','الأجهزة')+'</button>' +
+      '<button type="button" data-action="labels">'+tr('Labels','المسميات')+'</button>' +
+      '</div><div class="model3d-canvas-wrap"><canvas id="esso3dCanvas"></canvas></div>' +
+      '<div class="model3d-hud"><span class="model3d-badge">ESSO DIGITAL TWIN</span><span>'+tr('Orbit • Zoom • Pan','دوران • تكبير • تحريك')+'</span></div>';
+
+    const canvas=$('esso3dCanvas');
+    state.renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false});
+    state.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    state.renderer.outputColorSpace=THREE.SRGBColorSpace;
+    state.renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    state.renderer.toneMappingExposure=1.05;
+    state.renderer.shadowMap.enabled=true;
+    state.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+    state.scene=new THREE.Scene();
+    state.scene.background=new THREE.Color(0xe7e4de);
+    state.scene.fog=new THREE.Fog(0xe7e4de,35,140);
+
+    const hemi=new THREE.HemisphereLight(0xffffff,0x766f66,2.1);
+    state.scene.add(hemi);
+    const key=new THREE.DirectionalLight(0xffffff,3.5);
+    key.position.set(10,18,8);key.castShadow=true;
+    key.shadow.mapSize.set(2048,2048);
+    key.shadow.camera.left=-35;key.shadow.camera.right=35;key.shadow.camera.top=35;key.shadow.camera.bottom=-35;
+    state.scene.add(key);
+    const fill=new THREE.DirectionalLight(0xd7e7ff,1.0);
+    fill.position.set(-8,10,-10);state.scene.add(fill);
+
+    state.root=new THREE.Group();
+    state.scene.add(state.root);
+
+    state.camera=new THREE.PerspectiveCamera(42,1,.01,1000);
+    state.controls=new OrbitControls(state.camera,canvas);
+    state.controls.enableDamping=true;
+    state.controls.dampingFactor=.075;
+    state.controls.screenSpacePanning=true;
+    state.controls.enablePan=true;
+    state.controls.minPolarAngle=.18;
+    state.controls.maxPolarAngle=Math.PI*.49;
+
+    canvas.addEventListener('pointerup',e=>{
+      if(Math.abs(e.clientX-(canvas._downX||e.clientX))>5 || Math.abs(e.clientY-(canvas._downY||e.clientY))>5)return;
+      const rect=canvas.getBoundingClientRect();
+      const ndc=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);
+      const ray=new THREE.Raycaster();ray.setFromCamera(ndc,state.camera);
+      const meshes=[];
+      state.rooms3d.forEach(g=>g.traverse(o=>{if(o.isMesh)meshes.push(o);}));
+      const hits=ray.intersectObjects(meshes,true);
+      let id=hits[0]?.object?.userData?.roomId||null;
+      if(!id&&hits[0]){
+        const p=hits[0].point;
+        id=floorRooms().find(r=>pointInPoly(p.x,p.z,polygon2D(r)))?.id||null;
+      }
+      if(id){
+        state.selectedRoom=id;
+        showRoomDetails((state.model.rooms||[]).find(r=>r.id===id)||null);
+        render2D();highlight3D(id);
+      }
+    });
+    canvas.addEventListener('pointerdown',e=>{canvas._downX=e.clientX;canvas._downY=e.clientY;});
+
+    host.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>{
+      const a=btn.dataset.action;
+      if(a==='fit')fitCamera();
+      if(a==='top')topView();
+      if(a==='walls'){state.showWalls=!state.showWalls;buildFloor3D();}
+      if(a==='furniture'){state.showFurniture=!state.showFurniture;buildFloor3D();}
+      if(a==='devices'){state.showDevices=!state.showDevices;buildFloor3D();}
+      if(a==='labels'){state.showLabels=!state.showLabels;buildFloor3D();}
+    }));
+
+    window.addEventListener('resize',resize3D);
+    resize3D();
+  }
+
+  function resize3D() {
+    if(!state.renderer||!state.camera)return;
+    const canvas=$('esso3dCanvas');
+    if(!canvas)return;
+    const rect=canvas.getBoundingClientRect();
+    const w=Math.max(320,rect.width),h=Math.max(420,rect.height);
+    state.renderer.setSize(w,h,false);
+    state.camera.aspect=w/h;
+    state.camera.updateProjectionMatrix();
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if(state.controls)state.controls.update();
+    if(state.renderer&&state.scene&&state.camera)state.renderer.render(state.scene,state.camera);
+  }
+
+  async function run() {
+    try {
+      const r=await fetch('api/project.php?token='+encodeURIComponent(token),{credentials:'same-origin',cache:'no-store'});
+      const j=await r.json();
+      if(!r.ok||!j.success)throw new Error(j.message||tr('Project not found','المشروع غير موجود'));
+      state.project=j.project;
+      state.model=state.project.digital_model||{};
+      const floors=state.model.floors||[];
+      if(!floors.length)throw new Error(tr('No floor model is available yet.','لا يوجد نموذج أدوار متاح حتى الآن.'));
+      state.floor=floors[0];
+      $('viewerStatus').hidden=true;
+      $('viewer').hidden=false;
+      $('projectToken').textContent=tr('PROJECT ','المشروع ')+state.project.token;
+      $('projectTitle').textContent=(state.model.project?.type||tr('Smart Home','المنزل الذكي'))+(isAr?' — المعاينة الرقمية':' — Digital Twin');
+      $('projectSubtitle').textContent=String(state.model.rooms?.length||0)+' '+tr('rooms','غرف')+' • '+String(state.model.devices?.length||0)+' '+tr('smart items','أجهزة ذكية');
+      renderFloors();renderStats();renderTables();renderReview();setup3D();buildFloor3D();animate();
+    } catch(e) {
+      $('viewerStatus').textContent=e.message||tr('Unable to load preview.','تعذر تحميل المعاينة.');
+    }
   }
 
   run();
