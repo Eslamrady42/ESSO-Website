@@ -626,14 +626,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   function nearestDoorPoint(room) {
     const doors=room.door_details||[];
     if(!doors.length) return null;
-    const poly=polygon2D(room);
-    const b=bounds(poly);
+    const poly=polygon2D(room), b=bounds(poly);
+    const cx=b.cx, cz=b.cz;
     const cands=doors.map(d=>({
       x:Number(d.x||0)/100*state.floorW-state.floorW/2,
       z:Number(d.y||0)/100*state.floorD-state.floorD/2
     })).filter(p=>pointInPoly(p.x,p.z,poly));
     if(!cands.length)return null;
-    return cands.sort((a,b)=>Math.hypot(a.x, a.z)-Math.hypot(b.x,b.z))[0];
+    return cands.sort((a,b)=>Math.hypot(a.x-cx,a.z-cz)-Math.hypot(b.x-cx,b.z-cz))[0];
   }
 
   function addDevices(room,g) {
