@@ -427,6 +427,10 @@ if ($aiProvider === 'gemini') {
             ]],
             'generationConfig' => [
                 'responseMimeType' => 'application/json',
+                // Force Gemini to follow the exact ESSO analysis contract.
+                'responseJsonSchema' => $geminiSchema,
+                'temperature' => 0,
+                'maxOutputTokens' => 12000,
             ],
         ];
 
