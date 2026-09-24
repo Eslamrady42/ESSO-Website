@@ -1,1 +1,135 @@
-<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>ESSO | Shop</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"><link rel="stylesheet" href="css/style.css"></head><body><header><div class="container header-content"><a href="index_en.html" class="logo">ESSO</a><nav><ul><li><a href="index_en.html">Home</a></li><li><a href="about_en.html">About Us</a></li><li><a href="services_en.html">Services</a></li><li><a href="smart-home_en.html">Smart Home</a></li><li><a href="projects_en.html">Projects</a></li><li><a href="shop_en.html" class="active">Shop</a></li><li><a href="contact_en.html">Contact Us</a></li></ul></nav><div class="header-cta"><a href="cart_en.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cart-count">0</span></a><button type="button" onclick="switchLanguage()" class="btn btn-outline">العربية</button><a href="contact_en.html" class="btn btn-outline">Request Consultation</a></div></div></header><section class="shop-header"><div class="container"><h1>Shop</h1><p>Smart home devices and accessories from the ESSO catalog.</p></div></section><main class="container"><div class="shop-controls"><div class="category-filter"><select id="category-select"><option value="all">All Categories</option></select></div><div class="search-box"><input id="search-input" type="search" placeholder="Search products..."></div></div><div class="category-tabs" id="category-tabs"><button class="category-tab active" data-category="all">All</button></div><div id="products-container" class="products-grid"></div><div id="pagination-container" class="pagination"></div></main><footer><div class="container footer-content"><div class="footer-about"><h3>ESSO</h3><p>Engineering Smart Solutions Office — smart engineering solutions for connected, efficient projects.</p></div><div class="footer-links"><h4>Quick Links</h4><ul><li><a href="index_en.html">Home</a></li><li><a href="about_en.html">About Us</a></li><li><a href="services_en.html">Services</a></li><li><a href="smart-home_en.html">Smart Home</a></li><li><a href="projects_en.html">Projects</a></li><li><a href="shop_en.html">Shop</a></li><li><a href="contact_en.html">Contact Us</a></li></ul></div><div class="footer-contact"><h4>Contact Us</h4><p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p><p><i class="fas fa-phone"></i> +20 10 9555 6967</p><p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p></div></div><div class="copyright"><p>© 2026 ESSO - All rights reserved</p></div></footer><script src="js/data.js"></script><script src="js/main.js"></script><script src="js/shop_en.js"></script><script>function switchLanguage(){location.href='shop.html';}</script></body></html>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | Shop</title>
+    <meta name="description" content="Browse smart home devices and engineering products available from ESSO.">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .shop-header{background:linear-gradient(135deg,var(--primary-dark) 0%,#112240 100%);color:var(--white);padding:60px 0;text-align:center}
+        .shop-header h1{font-size:48px;margin-bottom:15px}
+        .shop-header p{font-size:18px;opacity:.9;max-width:700px;margin:0 auto}
+        .shop-controls{display:flex;justify-content:space-between;align-items:center;margin:40px 0 20px;flex-wrap:wrap;gap:20px}
+        .category-filter select,.search-box input{padding:10px 20px;border-radius:50px;border:1px solid var(--gray);font-family:'Cairo',sans-serif;font-size:16px;background:var(--white)}
+        .category-filter select{cursor:pointer}
+        .search-box input{width:300px}
+        .category-tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px;justify-content:center}
+        .category-tab{padding:8px 20px;border-radius:50px;border:2px solid var(--primary-dark);background:transparent;color:var(--primary-dark);font-weight:600;cursor:pointer;transition:var(--transition);font-family:'Cairo',sans-serif}
+        .category-tab:hover,.category-tab.active{background:var(--primary-dark);color:var(--white)}
+        .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:30px;margin-bottom:40px}
+        .product-card{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);transition:var(--transition);display:flex;flex-direction:column;cursor:pointer}
+        .product-card:hover{transform:translateY(-5px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+        .product-image{height:200px;background:#f0f0f0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+        .product-image img{width:100%;height:100%;object-fit:cover}
+        .product-info{padding:20px;flex:1;display:flex;flex-direction:column}
+        .product-name{font-size:18px;font-weight:700;color:var(--primary-dark);margin-bottom:10px}
+        .product-description{color:var(--gray);font-size:14px;margin-bottom:15px;line-height:1.6;flex:1}
+        .product-price{font-size:22px;font-weight:700;color:var(--primary-light);margin-bottom:15px}
+        .add-to-cart{background:var(--primary-dark);color:var(--white);border:none;padding:10px;border-radius:50px;font-weight:600;cursor:pointer;transition:var(--transition);width:100%}
+        .add-to-cart:hover{background:var(--primary-light);color:var(--primary-dark)}
+        .no-products{text-align:center;padding:50px;color:var(--gray);font-size:18px}
+        .pagination{display:flex;justify-content:center;gap:10px;margin:40px 0;flex-wrap:wrap}
+        .page-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--gray);background:var(--white);color:var(--primary-dark);font-weight:600;cursor:pointer;transition:var(--transition)}
+        .page-btn:hover,.page-btn.active{background:var(--primary-dark);color:var(--white);border-color:var(--primary-dark)}
+        .page-btn.prev-next{width:auto;padding:0 15px;border-radius:50px}
+        .page-btn.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+        @media(max-width:768px){.shop-controls{flex-direction:column;align-items:stretch}.search-box input{width:100%}}
+    </style>
+</head>
+<body>
+<header>
+    <div class="container header-content">
+        <a href="index_en.html" class="logo" aria-label="ESSO">ESSO</a>
+        <nav aria-label="Primary navigation">
+            <ul>
+                <li><a href="index_en.html">Home</a></li>
+                <li><a href="about_en.html">About Us</a></li>
+                <li><a href="services_en.html">Services</a></li>
+                <li><a href="smart-home_en.html">Smart Home</a></li>
+                <li><a href="projects_en.html">Projects</a></li>
+                <li><a href="shop_en.html" class="active">Shop</a></li>
+                <li><a href="contact_en.html">Contact Us</a></li>
+            </ul>
+        </nav>
+        <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+            <a href="cart_en.html" class="cart-icon" aria-label="Cart"><i class="fas fa-shopping-cart" aria-hidden="true"></i><span class="cart-count" id="cart-count">0</span></a>
+            <a href="shop.html" class="btn btn-outline" aria-label="Switch to Arabic">العربية</a>
+            <a href="contact_en.html" class="btn btn-outline">Request Consultation</a>
+        </div>
+    </div>
+</header>
+
+<section class="shop-header">
+    <div class="container">
+        <h1>Our Smart Products</h1>
+        <p>Browse smart home devices and engineering products available from ESSO.</p>
+    </div>
+</section>
+
+<section class="shop-controls container">
+    <div class="category-filter">
+        <select id="category-select" aria-label="Product category">
+            <option value="all">All Categories</option>
+            <option value="wifi-switches">WiFi Smart Switches</option>
+            <option value="zigbee-switches">Zigbee Smart Switches</option>
+            <option value="wifi-mini">WiFi Mini Switches</option>
+            <option value="zigbee-mini">Zigbee Mini Switches</option>
+            <option value="staircase">Staircase Lighting</option>
+            <option value="rgb">RGB Lighting</option>
+            <option value="wifi-sockets">WiFi Sockets</option>
+            <option value="zigbee-sockets">Zigbee Sockets</option>
+            <option value="wifi-curtain">WiFi Curtain Control</option>
+            <option value="zigbee-curtain">Zigbee Curtain Control</option>
+            <option value="curtain-accessories">Curtain Accessories</option>
+            <option value="motion-sensors">Motion Sensors</option>
+            <option value="wifi-sensors">WiFi Sensors</option>
+            <option value="zigbee-sensors">Zigbee Sensors</option>
+            <option value="remotes">Remote Controls</option>
+            <option value="touch-screens">Touch Screens</option>
+            <option value="wifi-security">WiFi Security</option>
+            <option value="zigbee-security">Zigbee Security</option>
+            <option value="hubs">Control Hubs</option>
+            <option value="garage">Garage Openers</option>
+            <option value="alexa">Alexa Devices</option>
+        </select>
+    </div>
+    <div class="search-box">
+        <input type="search" id="search-input" placeholder="Search for a product..." aria-label="Search products">
+    </div>
+</section>
+
+<div class="container">
+    <div class="category-tabs">
+        <button class="category-tab active" data-category="all">All</button>
+        <button class="category-tab" data-category="wifi-switches">WiFi</button>
+        <button class="category-tab" data-category="zigbee-switches">Zigbee</button>
+        <button class="category-tab" data-category="wifi-mini">WiFi Mini</button>
+        <button class="category-tab" data-category="zigbee-mini">Zigbee Mini</button>
+        <button class="category-tab" data-category="alexa">Alexa</button>
+        <button class="category-tab" data-category="touch-screens">Touch Screens</button>
+        <button class="category-tab" data-category="remotes">Remotes</button>
+    </div>
+</div>
+
+<section class="container">
+    <div id="products-container" class="products-grid"></div>
+    <div id="pagination-container" class="pagination"></div>
+</section>
+
+<footer>
+    <div class="container footer-content">
+        <div class="footer-about"><h3>ESSO</h3><p>Engineering Smart Solutions Office — smart engineering solutions that elevate your projects toward the future.</p><div class="social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-linkedin-in"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div></div>
+        <div class="footer-links"><h4>Quick Links</h4><ul><li><a href="index_en.html">Home</a></li><li><a href="about_en.html">About Us</a></li><li><a href="services_en.html">Services</a></li><li><a href="smart-home_en.html">Smart Home</a></li><li><a href="projects_en.html">Projects</a></li><li><a href="shop_en.html">Shop</a></li><li><a href="contact_en.html">Contact Us</a></li></ul></div>
+        <div class="footer-contact"><h4>Contact Us</h4><p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p><p><i class="fas fa-phone"></i> +20 10 9555 6967</p><p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p></div>
+    </div>
+    <div class="copyright"><p>© 2026 ESSO - All rights reserved</p></div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/shop_en.js"></script>
+<script src="js/main.js?v=31"></script>
+</body>
+</html>
