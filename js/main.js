@@ -1,5 +1,25 @@
 // main.js - ملف JavaScript الرئيسي لموقع ESSO
 
+// توحيد تحويل اللغة لجميع صفحات الموقع.
+// الصفحات العربية: page.html  ->  page_en.html
+// الصفحات الإنجليزية: page_en.html  ->  page.html
+window.switchLanguage = function () {
+    const path = window.location.pathname;
+    const file = path.split('/').pop() || 'index.html';
+
+    if (file.endsWith('_en.html')) {
+        window.location.href = file.replace(/_en\.html$/, '.html') + window.location.search + window.location.hash;
+        return;
+    }
+
+    if (file.endsWith('.html')) {
+        window.location.href = file.replace(/\.html$/, '_en.html') + window.location.search + window.location.hash;
+        return;
+    }
+
+    window.location.href = 'index_en.html';
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
@@ -54,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const scrollThreshold = 50;
 
     function handleHeaderVisibility() {
-        // لا نخفي الهيدر أثناء فتح قائمة الموبايل.
         if (header.classList.contains('mobile-menu-open')) {
             header.classList.remove('header-hidden');
             return;
@@ -86,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!headerContent || !nav) return;
 
-    // امنع إنشاء أكثر من زر إذا تم تحميل السكربت أكثر من مرة.
     let menuBtn = headerContent.querySelector('.menu-toggle');
 
     if (!menuBtn) {
@@ -97,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function () {
         menuBtn.setAttribute('aria-expanded', 'false');
         menuBtn.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
 
-        // نضع الزر داخل الهيدر بشكل ثابت حتى لا يتأثر بترتيب عناصر flex.
         menuBtn.style.cssText = [
             'font-size:24px',
             'cursor:pointer',
@@ -165,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // إغلاق القائمة بعد اختيار أي صفحة من القائمة.
     nav.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', function () {
             if (isMobile()) {
@@ -174,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // مزامنة القائمة عند التحميل وتغيير حجم الشاشة.
     syncMobileMenu();
     window.addEventListener('resize', syncMobileMenu);
 });
