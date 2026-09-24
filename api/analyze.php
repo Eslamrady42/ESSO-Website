@@ -502,11 +502,75 @@ if ($aiProvider === 'gemini') {
         $lastGeminiCode = $candidateCode;
 
         if ($candidateResponse !== false && $candidateCode >= 200 && $candidateCode < 300 && trim($candidateText) !== '') {
+            $draftText = trim($candidateText);
+            $reviewPrompt = $instructions
+                .."\n\nIMPORTANT: This is a second verification pass. Re-inspect the ORIGINAL attached floor plan visually and verify the draft below against the drawing. Correct room boundaries, labels, walls, doors, windows, envelope, stairs and adjacency where the draft does not match the source. Do NOT redesign or repack the building. Preserve correct geometry. Return ONLY the corrected JSON object matching the schema.\n\nDRAFT FROM FIRST PASS:\n"
+                .$draftText
+                ."\n\nReturn ONLY the corrected JSON object.";
+            $reviewParts = [['text' => $reviewPrompt]];
+            foreach ($visualFiles as $vf) {
+                if (!empty($vf['data'])) {
+                    $reviewParts[] = ['inline_data' => [
+                        'mime_type' => $vf['mime'],
+                        'data' => base64_encode($vf['data']),
+                    ]];
+                }
+            }
+
+            $reviewPayload = [
+                'systemInstruction' => ['parts' => [[
+                    'text' => 'You are ESSO architecture QA. Independently verify the attached floor plan and the draft analysis. Correct only source-supported errors. Never invent or repack rooms. Return JSON only.'
+                ]]],
+                'contents' => [['role' => 'user', 'parts' => $reviewParts]],
+                'generationConfig' => [
+                    'responseMimeType' => 'application/json',
+                    'responseJsonSchema' => $geminiSchema,
+                    'temperature' => 0,
+                    'maxOutputTokens' => 32768,
+                    'thinkingConfig' => ['thinkingLevel' => 'high'],
+                ],
+            ];
+
+            $reviewUrl = 'https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode($candidateModel).':generateContent?key='.rawurlencode(gemini_api_key());
+            $reviewCh = @curl_init($reviewUrl);
+            if ($reviewCh !== false) {
+                curl_setopt_array($reviewCh, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST => true,
+                    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                    CURLOPT_POSTFIELDS => json_encode($reviewPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    CURLOPT_TIMEOUT => GEMINI_TIMEOUT,
+                ]);
+                $reviewResponse = curl_exec($reviewCh);
+                $reviewCode = (int)curl_getinfo($reviewCh, CURLINFO_HTTP_CODE);
+                $reviewErr = curl_error($reviewCh);
+                curl_close($reviewCh);
+
+                $reviewDecoded = json_decode((string)$reviewResponse, true);
+                $reviewText = '';
+                if (is_array($reviewDecoded)) {
+                    foreach (($reviewDecoded['candidates'][0]['content']['parts'] ?? []) as $part) {
+                        if (is_string($part['text'] ?? null)) $reviewText .= $part['text'];
+                    }
+                }
+
+                if ($reviewCode >= 200 && $reviewCode < 300 && trim($reviewText) !== '') {
+                    $text = trim($reviewText);
+                    $response = $reviewResponse;
+                    $curlError = '';
+                    $httpCode = $reviewCode;
+                    $serverMessage = '';
+                    break;
+                }
+                audit_log('Gemini verification pass failed HTTP '.$reviewCode.' '.substr($reviewErr,0,180));
+            }
+
+            // If verification is unavailable, keep the valid first-pass result.
             $response = $candidateResponse;
             $curlError = '';
             $httpCode = $candidateCode;
             $serverMessage = '';
-            $text = trim($candidateText);
+            $text = $draftText;
             break;
         }
 
