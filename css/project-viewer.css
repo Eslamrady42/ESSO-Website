@@ -454,3 +454,32 @@
   .model-3d, .model-3d canvas { min-height: 440px; }
   .model3d-hud { flex-direction: column; align-items: flex-start; }
 }
+
+/* ESSO V40 geometry-driven architectural viewer */
+.viewer-shell{max-width:1500px}
+.viewer-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:stretch}
+.viewer-panel{min-height:680px}
+.floor-plan-2d{min-height:650px;padding:12px;display:flex;align-items:center;justify-content:center}
+.plan-svg-wrap{width:100%;height:100%;min-height:620px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px}
+.esso-plan-svg{width:100%;height:620px;min-height:500px;background:#faf9f6;border-radius:16px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.plan-envelope{fill:#efe9df;stroke:#726b61;stroke-width:.8}
+.plan-wall{fill:none;stroke:#877f74;stroke-width:.55;vector-effect:non-scaling-stroke}
+.plan-room-poly{cursor:pointer;stroke-width:.55;transition:fill .16s ease,stroke .16s ease}
+.plan-room-poly:hover{stroke-width:.95}
+.plan-room-poly.selected{fill:#bddfd7!important;stroke:#245f54!important;stroke-width:1!important}
+.plan-room-poly.review{fill:#f0e0b4!important;stroke:#a57827!important}
+.plan-room-label{font-family:Arial,sans-serif;font-size:2.2px;font-weight:700;fill:#263a36;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.plan-door{fill:#704d3a;stroke:#fff;stroke-width:.3}
+.plan-window{fill:#8dbdca;stroke:#4e7e88;stroke-width:.2}
+.plan-scale-note{text-align:center;color:#7a837f;font-size:11px;padding:2px 8px}
+.model-3d{min-height:680px;background:linear-gradient(180deg,#ebe8e2 0,#d9d4ca 100%);position:relative;overflow:hidden}
+.model3d-canvas-wrap{position:absolute;inset:0}
+#esso3dCanvas{width:100%;height:100%;min-height:680px;display:block;touch-action:none}
+.model3d-toolbar{position:absolute;z-index:10;top:12px;inset-inline:12px;display:flex;gap:7px;flex-wrap:wrap}
+.model3d-toolbar button{border:1px solid rgba(50,60,57,.15);background:rgba(255,255,255,.9);color:#30443f;padding:8px 11px;border-radius:999px;font:700 12px/1.1 Arial,sans-serif;cursor:pointer;box-shadow:0 4px 13px rgba(0,0,0,.08);backdrop-filter:blur(8px)}
+.model3d-toolbar button:hover{background:#fff;transform:translateY(-1px)}
+.model3d-hud{position:absolute;z-index:9;bottom:12px;inset-inline:14px;display:flex;justify-content:space-between;gap:12px;align-items:center;pointer-events:none;color:rgba(47,55,52,.75);font-size:11px}
+.model3d-badge{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(50,60,57,.14);font:800 10px/1 Arial,sans-serif;letter-spacing:.08em;backdrop-filter:blur(8px)}
+.room-details{max-width:320px}
+@media(max-width:1100px){.viewer-grid{grid-template-columns:1fr}.viewer-panel{min-height:560px}.floor-plan-2d,.plan-svg-wrap{min-height:520px}.model-3d,#esso3dCanvas{min-height:600px}}
+@media(max-width:700px){.viewer-panel{min-height:480px}.floor-plan-2d{padding:8px}.esso-plan-svg{height:440px;min-height:380px}.plan-svg-wrap{min-height:400px}.model-3d,#esso3dCanvas{min-height:470px}.model3d-toolbar{gap:5px}.model3d-toolbar button{padding:7px 9px;font-size:11px}}
