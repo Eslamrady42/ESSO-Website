@@ -520,7 +520,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   function roomFloor(room,g) {
     const poly=polygon2D(room);
     if(poly.length<3)return;
-    const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shapeFromPoly(poly)),mat(room.needs_review?0xf1e1b9:COLORS.floor,.98));
+    const floorColor=room.needs_review?0xf1e1b9:(
+      room.type==='kitchen'?0xe8e2d5:
+      room.type==='bathroom'?0xe4e9e8:
+      (room.type==='master_bedroom'||room.type==='bedroom')?0xeee7dd:
+      (room.type==='reception'||room.type==='living_room')?0xf1ece4:
+      COLORS.floor
+    );
+    const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shapeFromPoly(poly)),mat(floorColor,.98));
     mesh.rotation.x=-Math.PI/2;
     mesh.position.y=.01;
     mesh.userData.roomId=room.id;
@@ -596,9 +603,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       const dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz)||1;
       const nx=-dz/len,nz=dx/len;
       const toCam={x:cam.x-mx,z:cam.z-mz};
-      const facing=nx*toCam.x+nz*toCam.z>0.18*Math.hypot(toCam.x,toCam.z);
+      const facing=Math.abs(nx*toCam.x+nz*toCam.z)>0.34*Math.hypot(toCam.x,toCam.z);
       const dist=Math.hypot(toCam.x,toCam.z);
-      obj.visible=state.showWalls && !(facing && dist < Math.max(state.floorW,state.floorD)*3.0);
+      obj.visible=state.showWalls && !(facing && dist < Math.max(state.floorW,state.floorD)*3.5);
     });
   }
 
@@ -616,12 +623,24 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     (room.window_details||[]).forEach(o=>addOne(o,true));
   }
 
+  function nearestDoorPoint(room) {
+    const doors=room.door_details||[];
+    if(!doors.length) return null;
+    const poly=polygon2D(room);
+    const b=bounds(poly);
+    const cands=doors.map(d=>({
+      x:Number(d.x||0)/100*state.floorW-state.floorW/2,
+      z:Number(d.y||0)/100*state.floorD-state.floorD/2
+    })).filter(p=>pointInPoly(p.x,p.z,poly));
+    if(!cands.length)return null;
+    return cands.sort((a,b)=>Math.hypot(a.x, a.z)-Math.hypot(b.x,b.z))[0];
+  }
+
   function addDevices(room,g) {
     if(!state.showDevices)return;
     const poly=polygon2D(room), b=bounds(poly);
     const ds=(state.model.devices||[]).filter(d=>d.room===room.name);
     if(!ds.length||poly.length<3)return;
-    let index=0;
     ds.forEach(dev=>{
       const qty=Math.max(1,Math.min(12,Number(dev.qty||1)));
       const type=String(dev.type||'').toLowerCase();
@@ -633,8 +652,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
           continue;
         }
         if(type.includes('ir hvac')||type.includes('remote')){
-          y=1.65;
-          x=b.minX+b.width*.85;z=b.cz;
+          y=1.55;
+          x=b.minX+b.width*.84;z=b.cz;
           if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
           const m=box(.16,.22,.055,0xe7e7e5,.38,.1);m.position.set(x,y,z);m.userData.roomId=room.id;g.add(m);
           continue;
@@ -643,11 +662,15 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
           y=.10;
           x=b.cx;z=b.minZ+b.depth*.78;
         } else if(type.includes('gas')){
-          y=.75;x=b.cx;z=b.minZ+b.depth*.22;
+          y=.62;x=b.cx;z=b.minZ+b.depth*.20;
         } else if(type.includes('lighting switch')||type.includes('switch')){
-          y=1.25;
-          x=b.minX+b.width*.08;z=b.cz;
+          y=1.22;
+          const dp=nearestDoorPoint(room);
+          if(dp){x=dp.x;z=dp.z;} else {x=b.minX+b.width*.08;z=b.cz;}
           if(!pointInPoly(x,z,poly)){x=b.cx;z=b.cz;}
+          const plate=box(.18,.30,.055,0xf0f1ee,.40,.05);
+          plate.position.set(x,y,z);plate.userData.roomId=room.id;g.add(plate);
+          continue;
         } else {
           const cols=Math.min(4,qty);
           x=b.minX+b.width*(.30+(i%cols)*(.40/Math.max(1,cols-1)));
@@ -656,7 +679,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         }
         const col=dev.category==='Safety'?0xd47d64:(dev.category==='Lighting'?0xe2b44f:COLORS.accent);
         const m=sphere(.075,col,.42,.18);
-        m.position.set(x,y,z);m.userData.roomId=room.id;g.add(m);index++;
+        m.position.set(x,y,z);m.userData.roomId=room.id;g.add(m);
       }
     });
   }
