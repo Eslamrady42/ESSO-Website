@@ -1,0 +1,11 @@
+ESSO V20 - Claude/Anthropic-only AI integration
+
+- Removed Gemini/OpenAI as active providers from the Smart Home analyzer.
+- Added Anthropic Messages API integration at /v1/messages.
+- Default model: claude-sonnet-4-6.
+- JPG/JPEG/PNG sent as base64 image content blocks.
+- PDF sent as a base64 document content block.
+- AI is instructed to emit JSON only; server parses and validates the response before applying ESSO BOQ rules.
+- Added Claude setup page, health check, and connection test.
+- API key may be read from .env/environment or protected storage/private/anthropic.key.
+- No secret key is included in the archive.

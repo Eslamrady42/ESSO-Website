@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Start Your Smart Home | ESSO</title>
+    <meta name="description" content="Tell ESSO about your space, lifestyle, and smart home needs. Our team will design the right solution for your project." />
+    <link rel="canonical" href="https://www.essowebsite.com/client-requirements.html" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+                <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- ===== HERO / FORM HEADER ===== -->
+        <section class="page-header form-header">
+            <div class="container">
+                <div class="form-header-content">
+                    <span class="section-tag">Get Started</span>
+                    <h1>Let's Design Your Smart Home</h1>
+                    <p>
+                        Tell us about your space, lifestyle, and the features you need.
+                        Our team will use your answers to understand the right solution for your project.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== QUESTIONNAIRE FORM ===== -->
+        <section class="questionnaire">
+            <div class="container">
+                <form id="requirements-form" class="requirements-form" novalidate>
+
+                    <!-- === BASIC INFORMATION === -->
+                    <fieldset class="form-section">
+                        <legend>Basic Information</legend>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="full-name">Full Name <span class="required">*</span></label>
+                                <input type="text" id="full-name" name="fullName" placeholder="Your full name" required aria-required="true" />
+                                <span class="error-message" id="full-name-error">Please enter your full name.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number <span class="required">*</span></label>
+                                <input type="tel" id="phone" name="phone" placeholder="+1 234 567 8900" required aria-required="true" />
+                                <span class="error-message" id="phone-error">Please enter a valid phone number.</span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email Address <span class="required">*</span></label>
+                                <input type="email" id="email" name="email" placeholder="you@example.com" required aria-required="true" />
+                                <span class="error-message" id="email-error">Please enter a valid email address.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="city">City / Location <span class="required">*</span></label>
+                                <input type="text" id="city" name="city" placeholder="City, Country" required aria-required="true" />
+                                <span class="error-message" id="city-error">Please enter your location.</span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- === PROJECT INFORMATION === -->
+                    <fieldset class="form-section">
+                        <legend>Project Information</legend>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="property-type">Property Type <span class="required">*</span></label>
+                                <select id="property-type" name="propertyType" required aria-required="true">
+                                    <option value="">Select property type</option>
+                                    <option value="Apartment">Apartment</option>
+                                    <option value="Villa">Villa</option>
+                                    <option value="Duplex">Duplex</option>
+                                    <option value="Office">Office</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span class="error-message" id="property-type-error">Please select a property type.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="project-status">Project Status <span class="required">*</span></label>
+                                <select id="project-status" name="projectStatus" required aria-required="true">
+                                    <option value="">Select project status</option>
+                                    <option value="New Construction">New Construction</option>
+                                    <option value="Under Construction">Under Construction</option>
+                                    <option value="Finished">Finished</option>
+                                    <option value="Renovation">Renovation</option>
+                                </select>
+                                <span class="error-message" id="project-status-error">Please select the project status.</span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="property-size">Approximate Property Size</label>
+                                <input type="text" id="property-size" name="propertySize" placeholder="e.g. 250 m² / 2,700 ft²" />
+                            </div>
+                            <div class="form-group">
+                                <!-- empty for spacing -->
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- === SMART HOME REQUIREMENTS === -->
+                    <fieldset class="form-section">
+                        <legend>Smart Home Requirements</legend>
+                        <p class="fieldset-note">Which systems are you interested in? <span class="required">*</span></p>
+                        <div class="checkbox-grid" id="requirements-grid" role="group" aria-label="Smart home systems selection">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Lighting" />
+                                <span class="checkmark"></span> Lighting
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Curtains / Blinds" />
+                                <span class="checkmark"></span> Curtains / Blinds
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="HVAC" />
+                                <span class="checkmark"></span> HVAC
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Security" />
+                                <span class="checkmark"></span> Security
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="CCTV" />
+                                <span class="checkmark"></span> CCTV
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Access Control" />
+                                <span class="checkmark"></span> Access Control
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Smart Locks" />
+                                <span class="checkmark"></span> Smart Locks
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Smart Panels" />
+                                <span class="checkmark"></span> Smart Panels
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Voice Control" />
+                                <span class="checkmark"></span> Voice Control
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Multi-room Audio" />
+                                <span class="checkmark"></span> Multi-room Audio
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Energy Monitoring" />
+                                <span class="checkmark"></span> Energy Monitoring
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Networking" />
+                                <span class="checkmark"></span> Networking
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Full Home Automation" />
+                                <span class="checkmark"></span> Full Home Automation
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="requirements" value="Other" />
+                                <span class="checkmark"></span> Other
+                            </label>
+                        </div>
+                        <span class="error-message" id="requirements-error">Please select at least one system.</span>
+                    </fieldset>
+
+                    <!-- === TECHNOLOGY PREFERENCE === -->
+                    <fieldset class="form-section">
+                        <legend>Technology Preference</legend>
+                        <p class="fieldset-note">Do you already have a preferred technology platform?</p>
+                        <div class="radio-grid" id="tech-grid" role="radiogroup" aria-label="Technology preference">
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="KNX" />
+                                <span class="radio-custom"></span> KNX
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="Zigbee" />
+                                <span class="radio-custom"></span> Zigbee
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="Wi-Fi" />
+                                <span class="radio-custom"></span> Wi-Fi
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="Home Assistant" />
+                                <span class="radio-custom"></span> Home Assistant
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="Alexa" />
+                                <span class="radio-custom"></span> Alexa
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="Other" />
+                                <span class="radio-custom"></span> Other
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="technology" value="Not Sure — I need your recommendation" checked />
+                                <span class="radio-custom"></span> I'm not sure — I need your recommendation
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- === ROOMS === -->
+                    <fieldset class="form-section">
+                        <legend>Rooms to Automate</legend>
+                        <p class="fieldset-note">Which rooms would you like to include in your smart home system?</p>
+                        <div class="checkbox-grid" id="rooms-grid" role="group" aria-label="Rooms selection">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Living Room" />
+                                <span class="checkmark"></span> Living Room
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Master Bedroom" />
+                                <span class="checkmark"></span> Master Bedroom
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Bedrooms" />
+                                <span class="checkmark"></span> Bedrooms
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Kitchen" />
+                                <span class="checkmark"></span> Kitchen
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Bathrooms" />
+                                <span class="checkmark"></span> Bathrooms
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Entrance" />
+                                <span class="checkmark"></span> Entrance
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Garden" />
+                                <span class="checkmark"></span> Garden
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Garage" />
+                                <span class="checkmark"></span> Garage
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="rooms" value="Other" />
+                                <span class="checkmark"></span> Other
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- === ADDITIONAL REQUIREMENTS === -->
+                    <fieldset class="form-section">
+                        <legend>Additional Requirements</legend>
+                        <div class="form-group">
+                            <label for="additional-notes">Tell us anything else you would like your Smart Home to do.</label>
+                            <textarea id="additional-notes" name="additionalNotes" rows="5" placeholder="Describe any special requirements, preferences, or ideas you have for your smart home..."></textarea>
+                        </div>
+                    </fieldset>
+
+                    <!-- === CONTACT PREFERENCE === -->
+                    <fieldset class="form-section">
+                        <legend>Contact Preference</legend>
+                        <p class="fieldset-note">How would you like us to reach you? <span class="required">*</span></p>
+                        <div class="radio-grid" id="contact-grid" role="radiogroup" aria-label="Contact preference">
+                            <label class="radio-label">
+                                <input type="radio" name="contactPreference" value="Phone Call" required />
+                                <span class="radio-custom"></span> Phone Call
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="contactPreference" value="WhatsApp" />
+                                <span class="radio-custom"></span> WhatsApp
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="contactPreference" value="Email" />
+                                <span class="radio-custom"></span> Email
+                            </label>
+                        </div>
+                        <span class="error-message" id="contact-preference-error">Please select a contact preference.</span>
+                    </fieldset>
+
+                    <!-- === SUBMIT === -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i> Submit My Requirements
+                        </button>
+                        <p class="form-note">We'll review your requirements and get back to you within 24 hours.</p>
+                    </div>
+
+                    <!-- === SUCCESS MESSAGE (hidden initially) === -->
+                    <div id="form-success" class="form-success" style="display: none;" role="status">
+                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        <h3>Thank You</h3>
+                        <p>Your requirements have been received. Our team will review them and contact you shortly.</p>
+                        <a href="smart-home.html" class="btn btn-outline">Back to Smart Home</a>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer" role="contentinfo">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <img src="images/my-background.jpg" alt="ESSO — Engineering Smart Solutions Office" class="footer-logo footer-logo-fallback" />
+                <p>Engineering Smart Solutions Office — delivering intelligent, integrated systems for modern living.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Pages</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="smart-home.html">Smart Home</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="services.html#consulting">Consulting</a></li>
+                        <li><a href="services.html#design">Design</a></li>
+                        <li><a href="services.html#implementation">Implementation</a></li>
+                        <li><a href="services.html#integration">Integration</a></li>
+                        <li><a href="services.html#support">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="mailto:info@essowebsite.com"><i class="fas fa-envelope" aria-hidden="true"></i> info@essowebsite.com</a></li>
+                        <li><a href="tel:+1234567890"><i class="fas fa-phone" aria-hidden="true"></i> +1 (234) 567-890</a></li>
+                        <li><a href="contact.html"><i class="fas fa-map-pin" aria-hidden="true"></i> Find Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 ESSO — Engineering Smart Solutions Office. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js" defer></script>
+</body>
+</html>

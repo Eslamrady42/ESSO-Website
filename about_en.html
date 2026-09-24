@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | About Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	        <header>
+        <div class="container header-content">
+            <a href="index_en.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index_en.html">Home</a></li>
+                    <li><a href="about_en.html" class="active">About Us</a></li>
+                    <li><a href="services_en.html">Services</a></li>
+                    <li><a href="smart-home_en.html">Smart Home</a></li>
+                    <li><a href="projects_en.html">Projects</a></li>
+                    <li><a href="shop_en.html">Shop</a></li>
+                    <li><a href="contact_en.html">Contact Us</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart_en.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="Language switcher">العربية</button>
+                <a href="contact_en.html" class="btn btn-outline">Request Consultation</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>About Us</h1>
+            <p>Get to know ESSO up close: our vision, mission, and values.</p>
+        </div>
+    </section>
+
+    <section class="about-page">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-text">
+                    <h2>Our Story</h2>
+                    <p>ESSO was founded in 2015 by a group of experienced engineers and consultants with extensive expertise in various engineering fields. From the very beginning, we set out to deliver innovative engineering solutions that combine high quality with modern technologies. Over the years, we have executed numerous major projects in Egypt and the Arab world, earning our clients' trust through our commitment to excellence and precision.</p>
+                    <p>At ESSO, we believe that engineering is not just numbers and designs; it is an art and creativity aimed at improving people's lives. Therefore, we strive to deeply understand our clients' needs to provide customized solutions that meet their aspirations.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.pexels.com/photos/3862132/pexels-photo-3862132.jpeg" alt="Our team">
+                </div>
+            </div>
+            <div class="about-grid reverse">
+                <div class="about-image">
+                    <img src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" alt="Our vision">
+                </div>
+                <div class="about-text">
+                    <h2>Our Vision & Mission</h2>
+                    <p><strong>Vision:</strong> To be the leading partner in providing smart engineering solutions in the region, and to contribute to building a more sustainable and innovative future.</p>
+                    <p><strong>Mission:</strong> To deliver integrated consulting and engineering solutions using the latest global technologies, focusing on quality, innovation, and client satisfaction. We strive to develop the engineering sector by adopting concepts of artificial intelligence and the Internet of Things in our projects.</p>
+                </div>
+            </div>
+            <div class="values-section">
+                <h2>Our Values</h2>
+                <div class="values-grid">
+                    <div class="value-card"><i class="fas fa-handshake"></i><h3>Integrity</h3><p>We adhere to the highest standards of honesty and transparency in all our dealings.</p></div>
+                    <div class="value-card"><i class="fas fa-lightbulb"></i><h3>Innovation</h3><p>We constantly seek new ideas to deliver unconventional solutions.</p></div>
+                    <div class="value-card"><i class="fas fa-users"></i><h3>Teamwork</h3><p>We believe success is achieved through collaboration between our team and our clients.</p></div>
+                    <div class="value-card"><i class="fas fa-leaf"></i><h3>Sustainability</h3><p>We consider the environment and community in every project we undertake.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office – we provide smart engineering solutions that elevate your projects to the future.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index_en.html">Home</a></li>
+                    <li><a href="about_en.html">About Us</a></li>
+                    <li><a href="services_en.html">Services</a></li>
+                    <li><a href="projects_en.html">Projects</a></li>
+                    <li><a href="shop_en.html">Shop</a></li>
+                    <li><a href="contact_en.html">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p>
+                <p><i class="fas fa-phone"></i>00201095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - All rights reserved</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+	<script>
+    // دالة تبديل اللغة مباشرة في الصفحة لضمان وجودها
+    function switchLanguage() {
+        let currentUrl = window.location.href;
+        if (currentUrl.includes('_en')) {
+            window.location.href = currentUrl.replace('_en.html', '.html');
+        } else {
+            window.location.href = currentUrl.replace('.html', '_en.html');
+        }
+    }
+	</script>
+</body>
+</html>

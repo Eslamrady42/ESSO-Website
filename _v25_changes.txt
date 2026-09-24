@@ -1,0 +1,11 @@
+ESSO V25 — Architectural 3D Reconstruction
+
+- Added AI room boundary polygon support (geometry.points) to the floor-plan analysis model.
+- Digital model now preserves polygon room boundaries when available.
+- Replaced rectangular room-box rendering with polygon-based extruded rooms in the 3D viewer.
+- Added preliminary doors/windows opening markers on room edges.
+- Improved room-specific furniture: bedroom, reception/living, dining, kitchen, bathroom, office, laundry/utility.
+- Kept the canvas-based renderer with no external 3D CDN dependency.
+- Existing BOQ rules and project flow are preserved.
+
+Note: 3D geometry remains preliminary and is generated from AI-detected room boundaries. For construction, the engineering team must verify dimensions, wall thicknesses, openings, and furniture placement.

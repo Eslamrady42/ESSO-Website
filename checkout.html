@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | إتمام الطلب</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- ملف CSS الرئيسي -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* تنسيقات إضافية لصفحة إتمام الطلب */
+        .checkout-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .checkout-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .checkout-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .checkout-container {
+            padding: 60px 0;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 40px;
+        }
+        .checkout-form {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .checkout-summary {
+            background: var(--gray-light);
+            padding: 30px;
+            border-radius: 12px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-total {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--primary-light);
+            display: flex;
+            justify-content: space-between;
+        }
+        .place-order-btn {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 18px;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 20px;
+        }
+        .place-order-btn:hover {
+            background: #4ac7b0;
+            transform: translateY(-2px);
+        }
+        .empty-cart-message {
+            text-align: center;
+            padding: 30px;
+            background: var(--gray-light);
+            border-radius: 12px;
+        }
+        .empty-cart-message p {
+            margin-bottom: 20px;
+            color: var(--gray);
+        }
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            color: #2e7d32;
+        }
+        .secure-badge i {
+            font-size: 24px;
+        }
+
+        /* تحسينات للجوال */
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .checkout-summary {
+                position: static;
+                order: -1; /* عرض الملخص أولاً في الجوال */
+            }
+            .checkout-header h1 {
+                font-size: 32px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الهيدر (محدث) -->
+	        <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+    <!-- رأس الصفحة -->
+    <section class="checkout-header">
+        <div class="container">
+            <h1>إتمام الطلب</h1>
+            <p>أدخل بياناتك لتأكيد الطلب</p>
+        </div>
+    </section>
+
+    <!-- محتوى الصفحة الرئيسي -->
+    <section class="checkout-container container" id="checkout-content">
+        <!-- سيتم تعبئة المحتوى عبر JavaScript -->
+    </section>
+
+    <!-- التذييل (محدث) -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                <p><i class="fas fa-phone"></i>00201095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <!-- تحميل ملفات JavaScript -->
+    <script src="js/data.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // وظائف صفحة إتمام الطلب
+        document.addEventListener('DOMContentLoaded', function() {
+            displayCheckoutPage();
+            updateCartCount(); // من shop.js
+        });
+
+        function displayCheckoutPage() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const container = document.getElementById('checkout-content');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart-message">
+                        <i class="fas fa-shopping-cart" style="font-size: 60px; color: var(--gray-light); margin-bottom: 20px;"></i>
+                        <p>سلة التسوق فارغة. أضف منتجات أولاً</p>
+                        <a href="shop.html" class="btn btn-primary">تسوق الآن</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let total = 0;
+            let itemsHtml = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                return `
+                    <div class="summary-item">
+                        <span>${item.name} × ${item.quantity}</span>
+                        <span>EGP ${itemTotal.toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // نموذج إتمام الطلب مع الحقول المخفية
+            container.innerHTML = `
+                <div class="checkout-form">
+                    <h3 style="margin-bottom: 20px; color: var(--primary-dark);">معلومات التوصيل</h3>
+                    <form action="order-process.php" method="post" id="checkout-form">
+                        <div class="form-group">
+                            <label>الاسم الكامل *</label>
+                            <input type="text" name="name" placeholder="أدخل اسمك الكامل" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>البريد الإلكتروني *</label>
+                                <input type="email" name="email" placeholder="example@domain.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>رقم الهاتف *</label>
+                                <input type="tel" name="phone" placeholder="01xxxxxxxxx" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>العنوان *</label>
+                            <textarea name="address" rows="3" placeholder="العنوان بالتفصيل" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>طريقة الدفع</label>
+                            <select name="payment">
+                                <option value="cod">الدفع عند الاستلام</option>
+                                <option value="card">بطاقة ائتمان (سيتم تفعيلها لاحقاً)</option>
+                                <option value="bank">تحويل بنكي</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>ملاحظات إضافية (اختياري)</label>
+                            <textarea name="notes" rows="2" placeholder="أي ملاحظات تريد إضافتها..."></textarea>
+                        </div>
+
+                        <!-- حقل مخفي لبيانات السلة -->
+                        <input type="hidden" name="cart_data" id="cart-data" value="">
+						<input type="hidden" name="lang" value="ar">
+
+                        <button type="submit" class="place-order-btn" id="submit-btn">
+                            <i class="fas fa-check-circle"></i> تأكيد الطلب
+                        </button>
+                    </form>
+
+                    <div class="secure-badge">
+                        <i class="fas fa-lock"></i>
+                        <span>معلوماتك آمنة ومشفرة. لن يتم مشاركتها مع أي طرف ثالث.</span>
+                    </div>
+                </div>
+
+                <div class="checkout-summary">
+                    <h3 style="margin-bottom: 20px; color: var(--primary-dark);">ملخص الطلب</h3>
+                    <div id="summary-items">
+                        ${itemsHtml}
+                    </div>
+                    <div class="summary-total">
+                        <span>الإجمالي</span>
+                        <span>EGP ${total.toLocaleString()}</span>
+                    </div>
+
+                    <!-- كوبون خصم (اختياري) -->
+                    <div style="margin-top: 20px;">
+                        <input type="text" placeholder="كود الخصم (إن وجد)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <button style="width: 100%; margin-top: 10px; padding: 10px; background: var(--gray); color: white; border: none; border-radius: 8px;">تطبيق</button>
+                    </div>
+                </div>
+            `;
+
+            // تعبئة الحقل المخفي ببيانات السلة قبل الإرسال
+            document.getElementById('checkout-form').addEventListener('submit', function(e) {
+                const cartData = JSON.stringify(cart);
+                document.getElementById('cart-data').value = cartData;
+                // يمكن إضافة تفريغ السلة بعد النجاح عبر PHP
+            });
+        }
+    </script>
+</body>
+</html>

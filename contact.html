@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | اتصل بنا</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .page-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .contact-page {
+            padding: 80px 0;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 50px;
+        }
+        .contact-info {
+            background: var(--gray-light);
+            padding: 40px;
+            border-radius: 12px;
+        }
+        .contact-info h3 {
+            font-size: 28px;
+            color: var(--primary-dark);
+            margin-bottom: 30px;
+        }
+        .info-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .info-item i {
+            font-size: 28px;
+            color: var(--primary-light);
+        }
+        .info-item h4 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+        .info-item p {
+            color: var(--gray);
+        }
+        .map {
+            margin-top: 30px;
+            background: var(--primary-dark);
+            height: 200px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+        }
+        .contact-form {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .contact-form h3 {
+            font-size: 28px;
+            color: var(--primary-dark);
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
+        }
+        .form-group textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        .btn-submit {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+        .btn-submit:hover {
+            background: #4ac7b0;
+            transform: translateY(-2px);
+        }
+        @media (max-width: 768px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+	        <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html" class="active">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>اتصل بنا</h1>
+            <p>نحن هنا لمساعدتك. تواصل معنا لأي استفسار أو طلب استشارة</p>
+        </div>
+    </section>
+
+    <section class="contact-page">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- معلومات الاتصال -->
+                <div class="contact-info">
+                    <h3>معلومات الاتصال</h3>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>العنوان</h4>
+                            <p>القاهرة الجديدة، التجمع الخامس،<br> مبنى 15، مكتب 302</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>الهاتف</h4>
+                            <p>00201095556967</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>البريد الإلكتروني</h4>
+                            <p>info25.esso@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>ساعات العمل</h4>
+                            <p>السبت - الخميس: 9 صباحاً - 6 مساءً<br>الجمعة: مغلق</p>
+                        </div>
+                    </div>
+                    <div class="map">
+                        <span>خريطة الموقع (Google Maps)</span>
+                    </div>
+                </div>
+
+                <!-- نموذج الاتصال -->
+                <div class="contact-form">
+                    <h3>أرسل لنا رسالة</h3>
+                    <form action="contact-process.php" method="post">
+                        <div class="form-group">
+                            <input type="text" name="name" placeholder="الاسم الكامل" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" placeholder="البريد الإلكتروني" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="phone" placeholder="رقم الهاتف (اختياري)">
+                        </div>
+                        <div class="form-group">
+                            <select name="service" required>
+                                <option value="">اختر الخدمة التي تريد الاستفسار عنها</option>
+                                <option value="architectural">التصميم الهندسي</option>
+                                <option value="smart">الحلول الذكية</option>
+                                <option value="consulting">الاستشارات الإدارية</option>
+                                <option value="renewable">الطاقة المتجددة</option>
+                                <option value="supervision">الإشراف الهندسي</option>
+                                <option value="mep">التصميمات الميكانيكية والكهربائية</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" placeholder="اكتب رسالتك هنا..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">إرسال الرسالة</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                <p><i class="fas fa-phone"></i>00201095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+	<script>
+    // دالة تبديل اللغة مباشرة في الصفحة لضمان وجودها
+    function switchLanguage() {
+        let currentUrl = window.location.href;
+        if (currentUrl.includes('_en')) {
+            window.location.href = currentUrl.replace('_en.html', '.html');
+        } else {
+            window.location.href = currentUrl.replace('.html', '_en.html');
+        }
+    }
+	</script>
+</body>
+</html>

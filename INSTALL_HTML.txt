@@ -1,0 +1,8 @@
+ESSO HTML Smart Home navigation update
+
+Replace the listed HTML pages in your current site with these full files.
+The Smart Home link is added to the main navigation in Arabic and English.
+Do not replace your existing js/data.js or images/ folder.
+
+Included existing HTML pages: index, index_en, about, about_en, cart, cart_en, checkout, checkout_en, contact, contact_en.
+Also included: smart-home.html and smart-home_en.html plus smart-home.css and smart-home-nav.js.

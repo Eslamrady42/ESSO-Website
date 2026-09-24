@@ -1,0 +1,15 @@
+ESSO V7 – Gemini structured output compatibility fix
+
+Fixed:
+- Removed JSON Schema additionalProperties keywords recursively before sending responseSchema to Gemini v1beta.
+- Kept structured JSON analysis enabled for floor plans.
+- Added a compatibility retry when Gemini returns a 400 response_schema error.
+- Existing ESSO BOQ rules and Project Viewer are preserved.
+
+Tested locally:
+- api/analyze.php PHP syntax: PASS
+- api/functions.php PHP syntax: PASS
+- api/bootstrap.php PHP syntax: PASS
+
+Note:
+- A live Gemini API call was not made from the build environment because the user's API key is private.

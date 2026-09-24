@@ -1,0 +1,16 @@
+ESSO V11 - Gemini structured output fix
+
+Root cause fixed:
+- Gemini generateContent was receiving the floor-plan schema in generationConfig.responseSchema.
+- That field is the protobuf Schema representation and caused nested type/proto validation errors.
+
+Fix:
+- Use generationConfig.responseJsonSchema for the floor-plan JSON schema.
+- Preserve standard JSON Schema types (string/number/integer/boolean/object/array and nullable unions).
+- Keep additionalProperties:false where used; it is valid in responseJsonSchema.
+- Keep Gemini image/PDF inline media handling and the ESSO room/BOQ rules unchanged.
+
+Validation:
+- All api/*.php files pass php -l.
+- ZIP integrity test passes.
+- No secret/API key is included in the ZIP.

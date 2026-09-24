@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | خدماتنا</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .page-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .services-page {
+            padding: 80px 0;
+        }
+        .service-item {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            background: var(--gray-light);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+            align-items: center;
+        }
+        .service-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .service-icon {
+            text-align: center;
+        }
+        .service-icon i {
+            font-size: 80px;
+            color: var(--primary-light);
+        }
+        .service-info h3 {
+            font-size: 28px;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+        .service-info p {
+            color: var(--gray);
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+        .service-info ul {
+            list-style: disc;
+            padding-right: 20px;
+            color: var(--gray);
+        }
+        .service-info ul li {
+            margin-bottom: 5px;
+        }
+        @media (max-width: 768px) {
+            .service-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .service-info ul {
+                text-align: right;
+            }
+        }
+    </style>
+</head>
+<body>
+            <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html" class="active">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>خدماتنا الهندسية</h1>
+            <p>نقدم مجموعة متكاملة من الخدمات الهندسية والاستشارية لتلبية جميع احتياجاتك</p>
+        </div>
+    </section>
+
+    <section class="services-page">
+        <div class="container">
+            <!-- خدمة 1 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-drafting-compass"></i>
+                </div>
+                <div class="service-info">
+                    <h3>التصميم الهندسي</h3>
+                    <p>نقدم تصاميم معمارية وإنشائية متكاملة باستخدام أحدث برامج التصميم (AutoCAD, Revit, SketchUp) مع مراعاة الجوانب الجمالية والوظيفية والاقتصادية.</p>
+                    <ul>
+                        <li>تصميم معماري (مخططات، واجهات، رسومات تنفيذية)</li>
+                        <li>تصميم إنشائي (هياكل خرسانية، معدنية)</li>
+                        <li>نمذجة معلومات البناء (BIM)</li>
+                        <li>تصميم داخلي وتنسيق مواقع</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- خدمة 2 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <div class="service-info">
+                    <h3>الحلول الذكية</h3>
+                    <p>نوفر أنظمة وتحكم ذكية للمباني والمنشآت (Home Automation, BMS) لرفع كفاءة استهلاك الطاقة وتحسين الراحة والأمان</p>
+                    <ul>
+                        <li>أنظمة التحكم في الإضاءة والتكييف</li>
+                        <li>أنظمة الأمن والمراقبة (CCTV, إنذار)</li>
+                        <li>أنظمة إدارة الطاقة</li>
+                        <li>تكامل الأنظمة عبر IoT</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- خدمة 3 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="service-info">
+                    <h3>الاستشارات الإدارية وإدارة المشاريع</h3>
+                    <p>نساعدك على تنفيذ مشروعك بكفاءة عالية من خلال خدمات الإدارة والاستشارات المتخصصة، بدءًا من دراسة الجدوى وحتى التسليم النهائي.</p>
+                    <ul>
+                        <li>دراسات الجدوى الاقتصادية</li>
+                        <li>إدارة المشاريع (PMO)</li>
+                        <li>الإشراف على التنفيذ</li>
+                        <li>تقييم المشاريع ومراجعة التصاميم</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- خدمة 4 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-solar-panel"></i>
+                </div>
+                <div class="service-info">
+                    <h3>الطاقة المتجددة والاستدامة</h3>
+                    <p>نقدم حلول الطاقة المتجددة (الطاقة الشمسية، الرياح) ونصمم مباني مستدامة تراعي المعايير البيئية العالمية (LEED, ESTIDAMA).</p>
+                    <ul>
+                        <li>تصميم وتوريد وتركيب أنظمة الطاقة الشمسية</li>
+                        <li>دراسات كفاءة الطاقة</li>
+                        <li>شهادة LEED والاستدامة</li>
+                        <li>إدارة المخلفات وإعادة التدوير</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- خدمة 5 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-hard-hat"></i>
+                </div>
+                <div class="service-info">
+                    <h3>الإشراف الهندسي والتنفيذ</h3>
+                    <p>نقوم بالإشراف على تنفيذ المشاريع الهندسية لضمان الجودة والالتزام بالتصاميم والمواصفات، مع تقارير دورية ومتابعة دقيقة.</p>
+                    <ul>
+                        <li>الإشراف على التنفيذ (هندسي ومعماري)</li>
+                        <li>مراقبة الجودة واختبار المواد</li>
+                        <li>إدارة العقود والمقاولين</li>
+                        <li>إعداد تقارير الإنجاز</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- خدمة 6 -->
+            <div class="service-item">
+                <div class="service-icon">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="service-info">
+                    <h3>التصميمات الميكانيكية والكهربائية</h3>
+                    <p>نقدم تصاميم متكاملة للأنظمة الميكانيكية والكهربائية والسباكة (MEP) بأحدث البرامج والتقنيات.</p>
+                    <ul>
+                        <li>أنظمة التكييف والتهوية (HVAC)</li>
+                        <li>أنظمة الكهرباء (القوى، الإضاءة، اللوحات)</li>
+                        <li>أنظمة السباكة والصرف الصحي</li>
+                        <li>أنظمة مكافحة الحريق</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                <p><i class="fas fa-phone"></i> +2 01095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

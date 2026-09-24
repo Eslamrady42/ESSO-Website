@@ -1,0 +1,363 @@
+<!-- shop.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | المتجر</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- ملف CSS الرئيسي -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* تنسيقات إضافية للمتجر */
+        .shop-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .shop-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .shop-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .shop-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .category-filter select {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--gray);
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            background: var(--white);
+            cursor: pointer;
+        }
+        .search-box input {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--gray);
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            width: 300px;
+        }
+
+        /* أزرار الفئات */
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .category-tab {
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 2px solid var(--primary-dark);
+            background: transparent;
+            color: var(--primary-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Cairo', sans-serif;
+        }
+        .category-tab:hover,
+        .category-tab.active {
+            background: var(--primary-dark);
+            color: var(--white);
+        }
+
+        /* شبكة المنتجات */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .product-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer; /* مؤشر اليد */
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .product-image {
+            height: 200px;
+            background: #f0f0f0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+        }
+        .product-description {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            flex: 1;
+        }
+        .product-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-light);
+            margin-bottom: 15px;
+        }
+        .add-to-cart {
+            background: var(--primary-dark);
+            color: var(--white);
+            border: none;
+            padding: 10px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+        .add-to-cart:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        .cart-icon {
+            position: relative;
+            margin-left: 15px;
+        }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .no-products {
+            text-align: center;
+            padding: 50px;
+            color: var(--gray);
+            font-size: 18px;
+        }
+
+        /* ترقيم الصفحات */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--gray);
+            background: var(--white);
+            color: var(--primary-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .page-btn:hover,
+        .page-btn.active {
+            background: var(--primary-dark);
+            color: var(--white);
+            border-color: var(--primary-dark);
+        }
+        .page-btn.prev-next {
+            width: auto;
+            padding: 0 15px;
+            border-radius: 50px;
+        }
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .shop-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الهيدر -->
+            <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html" class="active">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- رأس المتجر -->
+    <section class="shop-header">
+        <div class="container">
+            <h1>منتجاتنا الذكية</h1>
+            <p>تصفح أحدث المنتجات في مجال المنازل الذكية والحلول الهندسية</p>
+        </div>
+    </section>
+
+    <!-- عناصر التحكم في المتجر -->
+    <section class="shop-controls container">
+        <div class="category-filter">
+            <select id="category-select">
+                <option value="all">جميع الفئات</option>
+                <option value="wifi-switches">مفاتيح WiFi ذكية</option>
+                <option value="zigbee-switches">مفاتيح Zigbee ذكية</option>
+                <option value="wifi-mini">مفاتيح ميني WiFi</option>
+                <option value="zigbee-mini">مفاتيح ميني Zigbee</option>
+                <option value="staircase">تحكم إضاءة السلالم</option>
+                <option value="rgb">إضاءة RGB</option>
+                <option value="wifi-sockets">مقابس WiFi</option>
+                <option value="zigbee-sockets">مقابس Zigbee</option>
+                <option value="wifi-curtain">تحكم ستائر WiFi</option>
+                <option value="zigbee-curtain">تحكم ستائر Zigbee</option>
+                <option value="curtain-accessories">اكسسوارات ستائر</option>
+                <option value="motion-sensors">حساسات حركة تقليدية</option>
+                <option value="wifi-sensors">حساسات WiFi</option>
+                <option value="zigbee-sensors">حساسات Zigbee</option>
+                <option value="remotes">ريموت كنترول</option>
+                <option value="touch-screens">شاشات لمس</option>
+                <option value="wifi-security">أمن وسلامة WiFi</option>
+                <option value="zigbee-security">أمن وسلامة Zigbee</option>
+                <option value="hubs">مراكز تحكم (Hubs)</option>
+                <option value="garage">فتحات جراج</option>
+                <option value="alexa">أجهزة Alexa</option>
+            </select>
+        </div>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="ابحث عن منتج...">
+        </div>
+    </section>
+
+    <!-- أزرار الفئات (اقتراح) -->
+    <div class="container">
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="all">الكل</button>
+            <button class="category-tab" data-category="wifi-switches">WiFi</button>
+            <button class="category-tab" data-category="zigbee-switches">Zigbee</button>
+            <button class="category-tab" data-category="wifi-mini">ميني WiFi</button>
+            <button class="category-tab" data-category="zigbee-mini">ميني Zigbee</button>
+            <button class="category-tab" data-category="alexa">Alexa</button>
+            <button class="category-tab" data-category="touch-screens">شاشات لمس</button>
+            <button class="category-tab" data-category="remotes">ريموتات</button>
+        </div>
+    </div>
+
+    <!-- شبكة المنتجات -->
+    <section class="container">
+        <div id="products-container" class="products-grid">
+            <!-- المنتجات ستظهر هنا عبر JavaScript -->
+        </div>
+        <!-- ترقيم الصفحات -->
+        <div id="pagination-container" class="pagination"></div>
+    </section>
+
+    <!-- التذييل -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                <p><i class="fas fa-phone"></i> +2 01095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <!-- تحميل ملفات JavaScript -->
+    <script src="js/data.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/main.js"></script>
+    <!-- لا نضيف product.js هنا أبداً -->
+</body>
+</html>

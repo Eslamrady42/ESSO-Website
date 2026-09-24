@@ -1,0 +1,16 @@
+ESSO FINAL QA
+==========
+Files: 232
+HTML: 27
+PHP: 12
+JS: 13
+Products: 150
+Missing product images: 0
+Broken local links: 0
+Navbar issues: 0
+PHP syntax failures: 0
+JS syntax failures: 0
+Rules/BOQ smoke: PASS
+Project save/load smoke: PASS
+
+The archive is a complete site package based on the uploaded RAR. Existing product catalog and original assets are preserved; Smart Home and engineering workflow components are added/fixed.

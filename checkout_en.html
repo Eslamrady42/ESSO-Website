@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* same as original but with ltr */
+        .checkout-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .checkout-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .checkout-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .checkout-container {
+            padding: 60px 0;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 40px;
+        }
+        .checkout-form {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .checkout-summary {
+            background: var(--gray-light);
+            padding: 30px;
+            border-radius: 12px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-total {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--primary-light);
+            display: flex;
+            justify-content: space-between;
+        }
+        .place-order-btn {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 18px;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 20px;
+        }
+        .place-order-btn:hover {
+            background: #4ac7b0;
+            transform: translateY(-2px);
+        }
+        .empty-cart-message {
+            text-align: center;
+            padding: 30px;
+            background: var(--gray-light);
+            border-radius: 12px;
+        }
+        .empty-cart-message p {
+            margin-bottom: 20px;
+            color: var(--gray);
+        }
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            color: #2e7d32;
+        }
+        .secure-badge i {
+            font-size: 24px;
+        }
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .checkout-summary {
+                position: static;
+                order: -1;
+            }
+            .checkout-header h1 {
+                font-size: 32px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+	        <header>
+        <div class="container header-content">
+            <a href="index_en.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index_en.html">Home</a></li>
+                    <li><a href="about_en.html">About Us</a></li>
+                    <li><a href="services_en.html">Services</a></li>
+                    <li><a href="smart-home_en.html">Smart Home</a></li>
+                    <li><a href="projects_en.html">Projects</a></li>
+                    <li><a href="shop_en.html">Shop</a></li>
+                    <li><a href="contact_en.html">Contact Us</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart_en.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="Language switcher">العربية</button>
+                <a href="contact_en.html" class="btn btn-outline">Request Consultation</a>
+            </div>
+        </div>
+    </header>
+    <section class="checkout-header">
+        <div class="container">
+            <h1>Checkout</h1>
+            <p>Enter your details to confirm your order</p>
+        </div>
+    </section>
+
+    <section class="checkout-container container" id="checkout-content"></section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office – we provide smart engineering solutions that elevate your projects to the future.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index_en.html">Home</a></li>
+                    <li><a href="about_en.html">About Us</a></li>
+                    <li><a href="services_en.html">Services</a></li>
+                    <li><a href="projects_en.html">Projects</a></li>
+                    <li><a href="shop_en.html">Shop</a></li>
+                    <li><a href="contact_en.html">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p>
+                <p><i class="fas fa-phone"></i>00201095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - All rights reserved</p>
+        </div>
+    </footer>
+
+     <script src="js/data.js"></script>
+    <script src="js/shop_en.js"></script>
+    <script src="js/cart_en.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+		const requiredMessage = "This field is required.";
+		const emailInvalidMessage = "Please enter a valid email address.";
+        // Same checkout logic as original but with English labels
+        document.addEventListener('DOMContentLoaded', function() {
+            displayCheckoutPage();
+            updateCartCount();
+        });
+
+        function displayCheckoutPage() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const container = document.getElementById('checkout-content');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart-message">
+                        <i class="fas fa-shopping-cart" style="font-size: 60px; color: var(--gray-light); margin-bottom: 20px;"></i>
+                        <p>Your shopping cart is empty. Please add some products first.</p>
+                        <a href="shop_en.html" class="btn btn-primary">Shop Now</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let total = 0;
+            let itemsHtml = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                return `
+                    <div class="summary-item">
+                        <span>${item.name} × ${item.quantity}</span>
+                        <span>EGP ${itemTotal.toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="checkout-form">
+                    <h3 style="margin-bottom: 20px; color: var(--primary-dark);">Shipping Information</h3>
+                    <form action="order-process_en.php" method="post" id="checkout-form">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" name="name" placeholder="Enter your full name" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email Address *</label>
+                                <input type="email" name="email" placeholder="example@domain.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" name="phone" placeholder="01xxxxxxxxx" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Address *</label>
+                            <textarea name="address" rows="3" placeholder="Detailed address" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select name="payment">
+                                <option value="cod">Cash on Delivery</option>
+                                <option value="card">Credit Card (coming soon)</option>
+                                <option value="bank">Bank Transfer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Additional Notes (optional)</label>
+                            <textarea name="notes" rows="2" placeholder="Any additional notes..."></textarea>
+                        </div>
+
+                        <input type="hidden" name="cart_data" id="cart-data" value="">
+						<input type="hidden" name="lang" value="en">
+
+                        <button type="submit" class="place-order-btn" id="submit-btn">
+                            <i class="fas fa-check-circle"></i> Place Order
+                        </button>
+                    </form>
+
+                    <div class="secure-badge">
+                        <i class="fas fa-lock"></i>
+                        <span>Your information is secure and encrypted. It will not be shared with any third party.</span>
+                    </div>
+                </div>
+
+                <div class="checkout-summary">
+                    <h3 style="margin-bottom: 20px; color: var(--primary-dark);">Order Summary</h3>
+                    <div id="summary-items">
+                        ${itemsHtml}
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span>EGP ${total.toLocaleString()}</span>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <input type="text" placeholder="Discount code (if any)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <button style="width: 100%; margin-top: 10px; padding: 10px; background: var(--gray); color: white; border: none; border-radius: 8px;">Apply</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('checkout-form').addEventListener('submit', function(e) {
+                const cartData = JSON.stringify(cart);
+                document.getElementById('cart-data').value = cartData;
+            });
+        }
+    </script>
+	<script>
+    // دالة تبديل اللغة مباشرة في الصفحة لضمان وجودها
+    function switchLanguage() {
+        let currentUrl = window.location.href;
+        if (currentUrl.includes('_en')) {
+            window.location.href = currentUrl.replace('_en.html', '.html');
+        } else {
+            window.location.href = currentUrl.replace('.html', '_en.html');
+        }
+    }
+	</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+ESSO Smart Home Final Patch
+
+1) Copy the files in this package into the existing ESSO website root.
+2) Do NOT replace js/data.js or the existing product catalog/assets.
+3) Copy .env.example to .env and set ANTHROPIC_API_KEY, SITE_URL and BASE_URL.
+4) Make uploads/private, uploads/rate and logs writable by PHP (0750/0770 as required by the host).
+5) Ensure PHP has cURL, fileinfo and JSON support.
+6) Open smart-home.php or smart-home_en.php.
+
+Important:
+- DWG/DXF uploads are accepted and stored securely, but the visual AI endpoint marks them for engineering/CAD review rather than pretending it can read their geometry directly.
+- BOQ prices are intentionally TBD unless real ESSO catalog pricing is wired in.
+- The package does not contain or overwrite the original 150+ product data.js because that file was not present in the supplied code artifact.
+
+
+V7 note: Claude/Anthropic structured-output schema is normalized for compatibility with the current Claude/Anthropic v1beta endpoint; object additionalProperties is removed before request.

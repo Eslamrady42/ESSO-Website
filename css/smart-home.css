@@ -1,0 +1,598 @@
+/* =========================================================
+   ESSO SMART HOME CONFIGURATOR
+   This stylesheet matches the current smart-home.js / smart-home_en.js DOM.
+   ========================================================= */
+
+.smart-home-container {
+    padding: 42px 0 80px;
+    background: var(--white);
+    min-height: calc(100vh - 90px);
+}
+
+.smart-home-shell {
+    width: 92%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.smart-home-progress {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 24px;
+}
+
+.smart-home-progress .step {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #eef2f5;
+    color: #657080;
+    border: 1px solid #e2e7eb;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.smart-home-progress .step.active {
+    background: var(--primary-dark);
+    color: var(--white);
+    border-color: var(--primary-dark);
+    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.15);
+}
+
+.smart-home-progress .step.done {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: var(--primary-light);
+}
+
+.smart-card {
+    background: var(--white);
+    border: 1px solid #e8edf1;
+    border-radius: 20px;
+    padding: 34px;
+    box-shadow: 0 15px 45px rgba(10, 25, 47, 0.08);
+}
+
+.smart-card h2 {
+    margin: 0 0 8px;
+    color: var(--primary-dark);
+    font-size: 30px;
+    line-height: 1.25;
+}
+
+.smart-card h3 {
+    color: var(--primary-dark);
+    margin: 0 0 12px;
+}
+
+.smart-card p {
+    line-height: 1.75;
+}
+
+.smart-muted {
+    color: var(--gray);
+    margin: 0 0 25px;
+}
+
+.smart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.smart-field {
+    margin-bottom: 18px;
+}
+
+.smart-field.full {
+    grid-column: 1 / -1;
+}
+
+.smart-field label {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+.smart-field input,
+.smart-field select,
+.smart-field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d7dee5;
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--black);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.smart-field input:focus,
+.smart-field select:focus,
+.smart-field textarea:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.16);
+}
+
+.smart-field textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.smart-checks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.smart-check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 1px solid #e1e7eb;
+    border-radius: 10px;
+    background: #fbfcfd;
+    color: var(--black);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.smart-check:hover {
+    border-color: var(--primary-light);
+    background: #f4fffc;
+    transform: translateY(-1px);
+}
+
+.smart-check input {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: var(--primary-dark);
+    flex: 0 0 auto;
+}
+
+.smart-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 10px;
+}
+
+.smart-btn {
+    border: 0;
+    border-radius: 999px;
+    min-height: 46px;
+    padding: 11px 24px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.smart-btn:hover {
+    transform: translateY(-2px);
+}
+
+.smart-btn.primary {
+    background: var(--primary-dark);
+    color: var(--white);
+}
+
+.smart-btn.primary:hover {
+    background: #112d51;
+}
+
+.smart-btn.accent {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.smart-btn.accent:hover {
+    background: #4ac7b0;
+}
+
+.smart-btn.secondary {
+    background: #edf1f4;
+    color: var(--primary-dark);
+}
+
+.smart-btn.secondary:hover {
+    background: #dfe5ea;
+}
+
+.smart-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.smart-upload {
+    position: relative;
+    min-height: 230px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 30px 20px;
+    border: 2px dashed #b2bdc7;
+    border-radius: 18px;
+    background: #fcfdfd;
+    color: var(--gray);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.smart-upload:hover,
+.smart-upload.drag {
+    border-color: var(--primary-light);
+    background: #f3fffc;
+    box-shadow: inset 0 0 0 1px rgba(100, 255, 218, 0.08);
+}
+
+.smart-upload i {
+    color: var(--primary-light);
+    font-size: 46px;
+    margin-bottom: 6px;
+}
+
+.smart-upload div {
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+.smart-files {
+    display: grid;
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.smart-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e5e9ed;
+    border-radius: 10px;
+    background: #f7f9fa;
+}
+
+.smart-file > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.smart-file .smart-btn {
+    min-height: 36px;
+    padding: 7px 14px;
+    font-size: 13px;
+    flex: 0 0 auto;
+}
+
+.smart-loader {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 22px 0;
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: #f5f8fa;
+    color: var(--primary-dark);
+}
+
+.smart-spinner {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border: 4px solid #e1e7eb;
+    border-top-color: var(--primary-light);
+    border-radius: 50%;
+    animation: essoSmartSpin .8s linear infinite;
+}
+
+@keyframes essoSmartSpin {
+    to { transform: rotate(360deg); }
+}
+
+.smart-stage-list {
+    display: grid;
+    gap: 9px;
+}
+
+.smart-stage {
+    position: relative;
+    padding: 12px 14px;
+    border: 1px solid #e3e8ec;
+    border-radius: 10px;
+    background: #f7f9fa;
+    color: #6d7784;
+    transition: var(--transition);
+}
+
+.smart-stage.active {
+    border-color: var(--primary-light);
+    background: #edfffb;
+    color: #0c5b4d;
+    font-weight: 700;
+}
+
+.smart-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 20px 0 28px;
+}
+
+.smart-stat {
+    padding: 16px;
+    border-radius: 13px;
+    background: #f6f8f9;
+    border: 1px solid #e7ebee;
+}
+
+.smart-stat span {
+    display: block;
+    color: var(--gray);
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.smart-stat strong {
+    display: block;
+    color: var(--primary-dark);
+    font-size: 22px;
+}
+
+.smart-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e5e9ed;
+    border-radius: 12px;
+}
+
+.smart-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 620px;
+}
+
+.smart-table th,
+.smart-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e8ecef;
+    text-align: start;
+    vertical-align: middle;
+}
+
+.smart-table th {
+    background: var(--primary-dark);
+    color: var(--white);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.smart-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.smart-table tbody tr:hover td {
+    background: #fafcfc;
+}
+
+.smart-badge {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #edf2f5;
+    color: #5c6875;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.smart-badge.review {
+    background: #fff1c6;
+    color: #735300;
+}
+
+.smart-info {
+    padding: 13px 15px;
+    border: 1px solid #bfe8df;
+    border-radius: 11px;
+    background: #effbf8;
+    color: #16483f;
+}
+
+.smart-error {
+    margin-bottom: 18px;
+    padding: 13px 15px;
+    border: 1px solid #ffcaca;
+    border-radius: 11px;
+    background: #fff1f1;
+    color: #9f1d1d;
+}
+
+.smart-review ul,
+.smart-card ul {
+    padding-inline-start: 22px;
+}
+
+[dir="rtl"] .smart-review ul,
+[dir="rtl"] .smart-card ul {
+    padding-right: 22px;
+    padding-left: 0;
+}
+
+/* Keep the existing Smart Home marketing sections usable if present. */
+.hero-smart {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+    color: var(--white);
+    padding: 80px 0 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-smart::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(10,25,47,.92), rgba(17,34,64,.82));
+    z-index: 0;
+}
+
+.hero-smart-container,
+.hero-smart-content,
+.hero-smart-visual {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-smart-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.hero-smart-content h1 {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.hero-smart-content h1 .highlight {
+    color: var(--primary-light);
+}
+
+.hero-smart-content p {
+    max-width: 600px;
+    font-size: 18px;
+    line-height: 1.8;
+    opacity: .92;
+}
+
+.hero-smart-visual img {
+    width: 100%;
+    max-width: 550px;
+    margin-inline: auto;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+
+@media (max-width: 992px) {
+    .smart-home-progress {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .smart-checks {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .smart-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-smart-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .smart-home-container {
+        padding: 28px 0 60px;
+    }
+
+    .smart-home-shell {
+        width: 94%;
+    }
+
+    .smart-card {
+        padding: 22px 18px;
+        border-radius: 16px;
+    }
+
+    .smart-card h2 {
+        font-size: 25px;
+    }
+
+    .smart-home-progress {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .smart-grid,
+    .smart-checks,
+    .smart-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .smart-field.full {
+        grid-column: auto;
+    }
+
+    .smart-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .smart-actions .smart-btn {
+        width: 100%;
+    }
+
+    .hero-smart {
+        padding: 55px 0 45px;
+    }
+
+    .hero-smart-content h1 {
+        font-size: 32px;
+    }
+
+    .hero-smart-content p {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .smart-home-progress .step {
+        font-size: 12px;
+        padding-inline: 7px;
+    }
+
+    .smart-upload {
+        min-height: 200px;
+    }
+
+    .smart-file {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .smart-file .smart-btn {
+        width: 100%;
+    }
+}
+
+.ai-instructions-field textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+.ai-instructions-field { margin-top: 18px; }

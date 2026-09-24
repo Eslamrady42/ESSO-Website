@@ -1,0 +1,9 @@
+ESSO V12 - Gemini 3.x provider hardening
+
+- Default Gemini model: gemini-3.6-flash.
+- Automatic fallback models: gemini-3.5-flash-lite, gemini-3.5-flash.
+- Removed Gemini responseSchema/responseJsonSchema from generateContent to avoid Schema/protobuf compatibility failures.
+- Kept responseMimeType=application/json and a strict prompt-defined output shape.
+- Added safe JSON extraction if the model wraps output in Markdown fences.
+- Gemini image/PDF inline_data analysis retained.
+- No API keys included.

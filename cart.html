@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | سلة التسوق</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- ملف CSS الرئيسي -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .cart-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .cart-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .cart-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .cart-container {
+            padding: 60px 0;
+            min-height: 400px;
+        }
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .cart-table th {
+            background: var(--primary-dark);
+            color: var(--white);
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .cart-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-table tr:last-child td {
+            border-bottom: none;
+        }
+        .cart-product {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .cart-product img {
+             width: 70px;
+			 height: 70px;
+			 object-fit: contain;
+			 background: #f0f0f0;
+			 border-radius: 8px;
+			 padding: 5px;
+        }
+        .cart-product-info h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+        .cart-product-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        .cart-quantity {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .quantity-btn {
+            background: var(--gray-light);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+        .quantity-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        .quantity-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #f44336;
+            cursor: pointer;
+            font-size: 18px;
+            transition: var(--transition);
+        }
+        .remove-btn:hover {
+            color: #d32f2f;
+            transform: scale(1.1);
+        }
+        .cart-summary {
+            background: var(--gray-light);
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .cart-total {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+        .cart-total span {
+            color: var(--primary-light);
+            margin-left: 10px;
+        }
+        .checkout-btn {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .checkout-btn:hover {
+            background: #4ac7b0;
+            transform: translateY(-2px);
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 60px;
+            color: var(--gray);
+        }
+        .empty-cart i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: var(--gray-light);
+        }
+        .empty-cart p {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .continue-shopping {
+            background: var(--primary-dark);
+            color: var(--white);
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition);
+        }
+        .continue-shopping:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+	        <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+    <section class="cart-header">
+        <div class="container">
+            <h1>سلة التسوق</h1>
+            <p>راجع منتجاتك قبل إتمام الطلب</p>
+        </div>
+    </section>
+
+    <section class="cart-container container" id="cart-container">
+        <!-- محتوى السلة سيتم عرضه عبر JavaScript -->
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                <p><i class="fas fa-phone"></i>00201095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

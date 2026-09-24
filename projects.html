@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSO | مشاريعنا</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #112240 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .page-header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .projects-page {
+            padding: 80px 0;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        .project-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: var(--transition);
+        }
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        .project-image {
+            height: 250px;
+            background: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 20px;
+        }
+        .project-info {
+            padding: 20px;
+        }
+        .project-info h3 {
+            font-size: 22px;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+        }
+        .project-info p {
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .project-tags span {
+            background: var(--gray-light);
+            color: var(--primary-dark);
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+            <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+            <nav aria-label="Primary navigation">
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="smart-home.html">المنزل الذكي</a></li>
+                    <li><a href="projects.html" class="active">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+                <a href="cart.html" class="cart-icon" aria-label="Cart">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+                <button type="button" onclick="switchLanguage()" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+                <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>مشاريعنا المميزة</h1>
+            <p>نفخر بتقديم مجموعة من أبرز المشاريع التي قمنا بتنفيذها في مختلف المجالات الهندسية</p>
+        </div>
+    </section>
+
+    <section class="projects-page">
+        <div class="container">
+            <div class="projects-grid">
+                <!-- مشروع 1 -->
+                <div class="project-card">
+                    <div class="project-image">صورة مشروع 1</div>
+                    <div class="project-info">
+                        <h3>برج القاهرة الإداري</h3>
+                        <p>تصميم معماري وإنشائي لبرج إداري مكون من 30 طابقًا بمنطقة وسط القاهرة، باستخدام تقنيات BIM وأنظمة ذكية.</p>
+                        <div class="project-tags">
+                            <span>تصميم معماري</span>
+                            <span>BIM</span>
+                            <span>مباني ذكية</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مشروع 2 -->
+                <div class="project-card">
+                    <div class="project-image">صورة مشروع 2</div>
+                    <div class="project-info">
+                        <h3>مشروع مدينة solar</h3>
+                        <p>تطوير مجمع سكني مستدام يعمل بالطاقة الشمسية، مع تصميم أنظمة طاقة متجددة وشبكة ذكية.</p>
+                        <div class="project-tags">
+                            <span>طاقة شمسية</span>
+                            <span>استدامة</span>
+                            <span>تصميم MEP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مشروع 3 -->
+                <div class="project-card">
+                    <div class="project-image">صورة مشروع 3</div>
+                    <div class="project-info">
+                        <h3>أتمتة فندق هيلتون</h3>
+                        <p>تنفيذ نظام أتمتة متكامل للفندق (BMS) للتحكم في الإضاءة والتكييف والطاقة، مع تكامل أنظمة الأمان.</p>
+                        <div class="project-tags">
+                            <span>أتمتة</span>
+                            <span>BMS</span>
+                            <span>IoT</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مشروع 4 -->
+                <div class="project-card">
+                    <div class="project-image">صورة مشروع 4</div>
+                    <div class="project-info">
+                        <h3>مستشفى السلامة</h3>
+                        <p>الإشراف على تنفيذ مستشفى متكامل بمساحة 10,000 متر مربع، مع تصميم أنظمة ميكانيكية وكهربائية متطورة.</p>
+                        <div class="project-tags">
+                            <span>إشراف هندسي</span>
+                            <span>MEP</span>
+                            <span>منشآت صحية</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مشروع 5 -->
+                <div class="project-card">
+                    <div class="project-image">صورة مشروع 5</div>
+                    <div class="project-info">
+                        <h3>مول التجارة العصرية</h3>
+                        <p>تصميم معماري وديكور داخلي لمول تجاري من 4 طوابق، مع مراعاة تدفق الحركة والمساحات الخضراء.</p>
+                        <div class="project-tags">
+                            <span>تصميم داخلي</span>
+                            <span>مساحات تجارية</span>
+                            <span>واجهات</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مشروع 6 -->
+                <div class="project-card">
+                    <div class="project-image">صورة مشروع 6</div>
+                    <div class="project-info">
+                        <h3>دراسة جدوى مصنع بلاستيك</h3>
+                        <p>إعداد دراسة جدوى فنية واقتصادية لمصنع إنتاج بلاستيك، مع تحليل السوق وتقدير التكاليف.</p>
+                        <div class="project-tags">
+                            <span>دراسة جدوى</span>
+                            <span>استشارات إدارية</span>
+                            <span>مشاريع صناعية</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-about">
+                <h3>ESSO</h3>
+                <p>Engineering Smart Solutions Office نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p>
+                <div class="social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن الشركة</a></li>
+                    <li><a href="services.html">خدماتنا</a></li>
+                    <li><a href="projects.html">مشاريعنا</a></li>
+                    <li><a href="shop.html">المتجر</a></li>
+                    <li><a href="contact.html">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                <p><i class="fas fa-phone"></i> +2 01095556967</p>
+                <p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ESSO - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

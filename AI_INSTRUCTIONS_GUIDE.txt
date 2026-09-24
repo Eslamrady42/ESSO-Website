@@ -1,0 +1,19 @@
+ESSO AI PROMPT CONFIGURATION
+
+The AI analysis prompt is controlled by the ESSO site files, not by website users.
+
+Edit this file to change the AI instructions:
+
+config/AI_PROMPT.txt
+
+api/analyze.php loads the prompt from this file on the server for every analysis request. The browser cannot override it.
+
+Suggested content you can add or modify:
+- Detect exact room boundaries and return polygon geometry.
+- Do not treat terraces, balconies, or open areas as habitable rooms.
+- Detect visible doors and windows and flag uncertain cases.
+- Never invent rooms, measurements, or geometry.
+- Prioritize geometry that can be reconstructed in the ESSO 3D viewer.
+- Preserve clear room labels from the drawing.
+
+After editing the file, refresh the site. No code change is required.

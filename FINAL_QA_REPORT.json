@@ -1,0 +1,14 @@
+{
+  "html_files": 27,
+  "php_files": 12,
+  "js_files": 13,
+  "total_files": 232,
+  "product_count": 150,
+  "missing_product_images": [],
+  "broken_local_links": [],
+  "nav_issues": [],
+  "php_syntax_failures": [],
+  "js_syntax_failures": [],
+  "rules_boq_smoke": true,
+  "project_save_load_smoke": true
+}
