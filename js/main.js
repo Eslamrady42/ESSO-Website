@@ -1,11 +1,10 @@
-// main.js - ملف JavaScript الرئيسي لموقع ESSO (نسخة محدثة)
+// main.js - ملف JavaScript الرئيسي لموقع ESSO
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1️⃣ تفعيل الرابط النشط في القائمة العلوية
+document.addEventListener('DOMContentLoaded', function () {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+
+    // 1) تفعيل الرابط النشط في القائمة العلوية
     const navLinks = document.querySelectorAll('nav ul li a');
-    
     navLinks.forEach(link => {
         const linkPage = link.getAttribute('href');
         if (linkPage === currentPage) {
@@ -15,15 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 2️⃣ التمرير السلس للروابط الداخلية (التي تبدأ بـ #)
+    // 2) التمرير السلس للروابط الداخلية
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-            e.preventDefault();
             const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
+            if (!targetId || targetId === '#') return;
+
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
+                e.preventDefault();
                 targetElement.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
@@ -32,15 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 3️⃣ تأثير الهيدر عند التمرير (تغيير الخلفية والظل)
     const header = document.querySelector('header');
-    if (!header) return; // إذا لم يوجد الهيدر، لا تفعل شيئاً
+    if (!header) return;
 
-    // إضافة transition في CSS (يمكن وضعها في ملف style.css ولكن نضيفها هنا للتوضيح)
     header.style.transition = 'transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease';
     header.style.willChange = 'transform, background, box-shadow';
 
-    // دالة تحديث الخلفية والظل
+    // 3) تأثير الهيدر عند التمرير
     function updateHeaderStyle() {
         if (window.scrollY > 50) {
             header.style.background = 'rgba(10, 25, 47, 0.95)';
@@ -53,81 +50,131 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // متغيرات إخفاء الهيدر
     let lastScrollTop = 0;
-    const scrollThreshold = 50; // المسافة التي بعدها يتم الإخفاء
+    const scrollThreshold = 50;
 
     function handleHeaderVisibility() {
-        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        
+        // لا نخفي الهيدر أثناء فتح قائمة الموبايل.
+        if (header.classList.contains('mobile-menu-open')) {
+            header.classList.remove('header-hidden');
+            return;
+        }
+
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
         if (currentScroll > lastScrollTop && currentScroll > scrollThreshold) {
-            // التمرير لأسفل - إخفاء الهيدر
             header.classList.add('header-hidden');
         } else {
-            // التمرير لأعلى - إظهار الهيدر
             header.classList.remove('header-hidden');
         }
-        
+
         lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     }
 
-    // دمج الوظيفتين في حدث scroll واحد
-    window.addEventListener('scroll', function() {
-        requestAnimationFrame(() => {
+    window.addEventListener('scroll', function () {
+        requestAnimationFrame(function () {
             updateHeaderStyle();
             handleHeaderVisibility();
         });
     });
 
-    // استدعاء أولي لضبط الحالة
     updateHeaderStyle();
 
-    // 4️⃣ قائمة همبرغر للموبايل (اختياري - تعمل فقط على الشاشات الصغيرة)
-    if (window.innerWidth <= 768) {
-        const menuBtn = document.createElement('div');
-        menuBtn.className = 'menu-toggle';
-        menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        menuBtn.style.cssText = `
-            font-size: 24px;
-            cursor: pointer;
-            margin-left: 15px;
-            display: block;
-        `;
+    // 4) قائمة الموبايل
+    const headerContent = document.querySelector('.header-content');
+    const nav = document.querySelector('nav');
 
-        const headerContent = document.querySelector('.header-content');
-        const nav = document.querySelector('nav');
-        
-        if (headerContent && nav) {
-            // إدراج الزر بعد اللوجو
-            headerContent.insertBefore(menuBtn, nav);
-            
-            // إخفاء القائمة افتراضياً
-            nav.style.display = 'none';
-            
-            // عند النقر على الزر
-            menuBtn.addEventListener('click', function() {
-                if (nav.style.display === 'none') {
-                    nav.style.display = 'block';
-                    menuBtn.innerHTML = '<i class="fas fa-times"></i>';
-                } else {
-                    nav.style.display = 'none';
-                    menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-                }
-            });
-            
-            // إعادة تعيين عند تغيير حجم النافذة
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    nav.style.display = 'flex';
-                    if (menuBtn) menuBtn.style.display = 'none';
-                } else {
-                    nav.style.display = 'none';
-                    if (menuBtn) {
-                        menuBtn.style.display = 'block';
-                        menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-                    }
-                }
-            });
+    if (!headerContent || !nav) return;
+
+    // امنع إنشاء أكثر من زر إذا تم تحميل السكربت أكثر من مرة.
+    let menuBtn = headerContent.querySelector('.menu-toggle');
+
+    if (!menuBtn) {
+        menuBtn = document.createElement('button');
+        menuBtn.type = 'button';
+        menuBtn.className = 'menu-toggle';
+        menuBtn.setAttribute('aria-label', 'Open navigation menu');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
+
+        // نضع الزر داخل الهيدر بشكل ثابت حتى لا يتأثر بترتيب عناصر flex.
+        menuBtn.style.cssText = [
+            'font-size:24px',
+            'cursor:pointer',
+            'border:0',
+            'background:transparent',
+            'color:inherit',
+            'padding:6px',
+            'line-height:1',
+            'display:none',
+            'align-items:center',
+            'justify-content:center',
+            'z-index:110'
+        ].join(';');
+
+        headerContent.insertBefore(menuBtn, nav);
+    }
+
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+
+    function openMenu() {
+        if (!isMobile()) return;
+
+        nav.style.display = 'block';
+        nav.setAttribute('aria-hidden', 'false');
+        menuBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
+        menuBtn.setAttribute('aria-label', 'Close navigation menu');
+        menuBtn.setAttribute('aria-expanded', 'true');
+        header.classList.add('mobile-menu-open');
+        header.classList.remove('header-hidden');
+    }
+
+    function closeMenu() {
+        nav.style.display = 'none';
+        nav.setAttribute('aria-hidden', 'true');
+        menuBtn.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
+        menuBtn.setAttribute('aria-label', 'Open navigation menu');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        header.classList.remove('mobile-menu-open');
+    }
+
+    function syncMobileMenu() {
+        if (isMobile()) {
+            menuBtn.style.display = 'flex';
+            closeMenu();
+        } else {
+            menuBtn.style.display = 'none';
+            nav.style.display = '';
+            nav.setAttribute('aria-hidden', 'false');
+            header.classList.remove('mobile-menu-open', 'header-hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            menuBtn.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
         }
     }
+
+    menuBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (nav.style.display === 'none' || nav.style.display === '') {
+            openMenu();
+        } else {
+            closeMenu();
+        }
+    });
+
+    // إغلاق القائمة بعد اختيار أي صفحة من القائمة.
+    nav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function () {
+            if (isMobile()) {
+                closeMenu();
+            }
+        });
+    });
+
+    // مزامنة القائمة عند التحميل وتغيير حجم الشاشة.
+    syncMobileMenu();
+    window.addEventListener('resize', syncMobileMenu);
 });
