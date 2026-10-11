@@ -663,3 +663,23 @@
     .smart-room-card { padding: 13px; }
     .smart-room-device-row { gap: 8px; }
 }
+
+/* The selected systems are echoed back in the BOQ result so customers can verify their choices. */
+.smart-selected-systems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 24px;
+}
+.smart-selected-system {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #dce6eb;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: #f2f6f8;
+    color: #294d60;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.4;
+}
