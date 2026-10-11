@@ -399,6 +399,38 @@ function build_recommendations(array $a, array $requirements): array
             $n = $r['name'];
             $type = normalize_room_type($r['type'], $n);
             $c = (float)$r['confidence'];
+
+            // Bathroom-specific ESSO rule:
+            // bathrooms receive ONLY a motion sensor for lighting/electrical control
+            // and a water-leak sensor. Excludes smart switches, curtains, smoke,
+            // IR, HVAC and all other optional room-level devices.
+            if ($type === 'bathroom') {
+                $foundWaterArea = true;
+                $add(
+                    $items,
+                    $n,
+                    'Lighting / Automation',
+                    'Motion sensor for bathroom lighting control',
+                    1,
+                    'ESSO bathroom rule: motion sensor controls bathroom lighting/electricity',
+                    $c,
+                    'bathroom-motion-lighting',
+                    true
+                );
+                $add(
+                    $items,
+                    $n,
+                    'Safety',
+                    'Water leak sensor',
+                    1,
+                    'ESSO bathroom rule: one water leak sensor per bathroom',
+                    $c,
+                    'leak-per-bathroom',
+                    true
+                );
+                continue;
+            }
+
             $switchQty = in_array($type, ['reception', 'master_bedroom'], true) ? 2 : 1;
 
             // ESSO core lighting rule: every detected room gets a switch;
@@ -451,11 +483,6 @@ function build_recommendations(array $a, array $requirements): array
                 $add($items, $n, 'Safety', 'Gas detector', 1, 'ESSO rule: gas detector in kitchen', $c, 'gas-in-kitchen', true);
                 $add($items, $n, 'Safety', 'Motorized gas valve', 1, 'ESSO rule: motorized gas shutoff valve in kitchen', $c, 'gas-valve-in-kitchen', true);
                 $add($items, $n, 'Safety', 'Water leak sensor', 1, 'ESSO rule: water leak sensor in kitchen', $c, 'leak-in-kitchen', true);
-            }
-
-            if ($type === 'bathroom') {
-                $foundWaterArea = true;
-                $add($items, $n, 'Safety', 'Water leak sensor', 1, 'ESSO rule: water leak sensor in every bathroom', $c, 'leak-per-bathroom', true);
             }
 
             // Optional requirements selected by the customer.
