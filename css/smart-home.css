@@ -683,3 +683,28 @@
     font-weight: 800;
     line-height: 1.4;
 }
+
+
+/* Each room lists all required items first, followed by recommended items. */
+.smart-room-group + .smart-room-group {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #e7edf0;
+}
+.smart-room-group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 5px;
+    color: #28495c;
+    font-size: 13px;
+    font-weight: 800;
+}
+.smart-room-group-title::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
