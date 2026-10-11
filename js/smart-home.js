@@ -159,7 +159,7 @@
         <div class="smart-stage active">2. ${lang === 'ar' ? 'اكتشاف الأدوار والغرف' : 'Detect floors and rooms'}</div>
         <div class="smart-stage active">3. ${lang === 'ar' ? 'اكتشاف الأبواب والشبابيك والأبعاد' : 'Detect doors, windows and dimensions'}</div>
         <div class="smart-stage active">4. ${lang === 'ar' ? 'تطبيق قواعد ESSO للـ BOQ' : 'Apply ESSO BOQ rules'}</div>
-        <div class="smart-stage active">5. ${lang === 'ar' ? 'بناء المخطط الرقمي والمعاينة' : 'Build digital floor plan and preview'}</div>
+        <div class="smart-stage active">5. ${lang === 'ar' ? 'إعداد BOQ وتوزيع الأجهزة حسب الغرف' : 'Prepare BOQ and room-by-room device distribution'}</div>
       </div>`;
   }
 
