@@ -76,6 +76,11 @@
   }[c]));
 
   const apiJSON = async (url, opt = {}) => {
+    if (location.hostname.toLowerCase().endsWith('.github.io') && String(url).startsWith('api/')) {
+      throw new Error(lang === 'ar'
+        ? 'نسخة GitHub Pages تعرض الواجهة فقط، ولا تشغّل PHP المطلوب لرفع المخطط وتحليله. لتفعيل BOQ الحقيقي يجب ربط الموقع بخادم يدعم PHP وضبط Gemini على الخادم.'
+        : 'The GitHub Pages version serves the interface only and cannot run the PHP backend required for uploads and analysis. To enable real BOQ analysis, connect the site to a PHP-capable server and configure Gemini server-side.');
+    }
     const r = await fetch(API(url), { credentials: 'same-origin', ...opt });
     let j = null;
     try { j = await r.json(); } catch (_) { throw new Error('Invalid server response'); }
