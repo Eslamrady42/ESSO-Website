@@ -596,3 +596,70 @@
 
 .ai-instructions-field textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
 .ai-instructions-field { margin-top: 18px; }
+
+
+/* Customer-facing BOQ and room-by-room device distribution */
+.smart-room-distribution {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+.smart-room-card {
+    min-width: 0;
+    border: 1px solid #dfe6eb;
+    border-radius: 16px;
+    background: #fff;
+    padding: 16px;
+    box-shadow: 0 5px 18px rgba(20, 39, 56, .045);
+}
+.smart-room-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #edf1f4;
+}
+.smart-room-card-head h4 {
+    margin: 0;
+    color: var(--primary-dark, #18384b);
+    font-size: 17px;
+}
+.smart-room-count, .smart-room-qty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 999px;
+    padding: 5px 9px;
+    background: #eef4f7;
+    color: #28495c;
+    font-size: 12px;
+    font-weight: 800;
+}
+.smart-room-device-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 13px 0;
+    border-bottom: 1px solid #edf1f4;
+}
+.smart-room-device-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.smart-room-device-copy { min-width: 0; }
+.smart-room-device-copy strong { display: block; line-height: 1.5; overflow-wrap: anywhere; }
+.smart-room-device-copy p {
+    margin: 4px 0 0;
+    color: #6a7782;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.smart-room-device-row .smart-badge { grid-column: 1 / -1; justify-self: start; }
+.smart-qty-cell { font-weight: 800; white-space: nowrap; }
+.smart-boq-note p { margin-bottom: 0; line-height: 1.8; }
+@media (max-width: 560px) {
+    .smart-room-distribution { grid-template-columns: 1fr; }
+    .smart-room-card { padding: 13px; }
+    .smart-room-device-row { gap: 8px; }
+}
