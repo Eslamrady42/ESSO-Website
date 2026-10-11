@@ -17,7 +17,7 @@
       planHint: 'JPG / PNG / PDF / DXF / DWG — حتى 10MB لكل ملف',
       drop: 'اسحب الملفات هنا أو اضغط للاختيار', analyze: 'تحليل المخطط',
       next: 'التالي', back: 'السابق', result: 'ملخص BOQ وتوزيع الأجهزة',
-      review: 'المراجعة الهندسية', send: 'إرسال طلب التصميم النهائي', notes: 'ملاحظات إضافية',
+      review: 'المراجعة الهندسية', send: 'إرسال طلب التصميم النهائي', notes: 'ملاحظات إضافية', chooseSystem: 'اختر نظامًا واحدًا على الأقل للمتابعة.', selectedSystems: 'الأنظمة التي اخترتها',
       error: 'حدث خطأ. حاول مرة أخرى.', required: 'يرجى استكمال الاسم والبريد والهاتف.',
       ai: 'جاري تحليل المخطط بالذكاء الاصطناعي...', openViewer: 'عرض قائمة الأجهزة',
       saved: 'تم تجهيز قائمة مبدئية بالأجهزة والكميات حسب المخطط.', rooms: 'الغرف', detected: 'تم اكتشافها',
@@ -39,7 +39,7 @@
       drop: 'Drag files here or click to choose', analyze: 'Analyze Plan', next: 'Next', back: 'Back',
       result: 'Preliminary BOQ & Device Distribution', review: 'Engineering Review', send: 'Request Final Design',
       notes: 'Additional notes', error: 'Something went wrong. Please try again.',
-      required: 'Please complete name, email and phone.', ai: 'Analyzing your floor plan with AI...',
+      required: 'Please complete name, email and phone.', chooseSystem: 'Select at least one system to continue.', selectedSystems: 'Systems You Selected', ai: 'Analyzing your floor plan with AI...',
       openViewer: 'View Device List', saved: 'A preliminary device and quantity list has been prepared from the plan.',
       rooms: 'Rooms', detected: 'detected', aiStatus: 'AI analysis status', aiCompleted: 'Completed',
       aiNotRun: 'Not run', aiError: 'Analysis failed', roomBreakdown: 'Rooms Identified from the Plan',
@@ -56,14 +56,14 @@
 
   const arReq = {
     lighting: 'الإضاءة', curtains: 'الستائر', hvac: 'التكييف', security: 'الأمن', cctv: 'الكاميرات',
-    access_control: 'التحكم بالدخول', door_sensors: 'حساسات الأبواب', window_sensors: 'حساسات النوافذ',
+    access_control: 'التحكم بالدخول', door_sensors: 'حساسات الأبواب', window_sensors: 'حساسات النوافذ', smoke_sensors: 'حساسات الدخان / إنذار الحريق',
     motion_sensors: 'حساسات الحركة/الوجود', temperature_sensors: 'حساسات الحرارة', gas_sensors: 'حساسات الغاز',
     water_leak: 'تسرب المياه', voice_control: 'تحكم صوتي', mobile_control: 'تحكم بالموبايل',
     central_panel: 'لوحة مركزية', networking: 'الشبكات', scenes: 'المشاهد', home_assistant: 'Home Assistant'
   };
   const reqs = Object.entries({
     lighting: 'Lighting', curtains: 'Curtains', hvac: 'HVAC', security: 'Security', cctv: 'CCTV',
-    access_control: 'Access Control', door_sensors: 'Door Sensors', window_sensors: 'Window Sensors',
+    access_control: 'Access Control', door_sensors: 'Door Sensors', window_sensors: 'Window Sensors', smoke_sensors: 'Smoke Detection',
     motion_sensors: 'Motion / Presence', temperature_sensors: 'Temperature Sensors', gas_sensors: 'Gas Sensors',
     water_leak: 'Water Leak', voice_control: 'Voice Control', mobile_control: 'Mobile App',
     central_panel: 'Central Panel', networking: 'Networking', scenes: 'Scenes', home_assistant: 'Home Assistant'
@@ -142,8 +142,8 @@
 
   function requirements() {
     return `<h2>${t.requirements}</h2><p class="smart-muted">${lang === 'ar'
-      ? 'هذه الاختيارات تضيف الأنظمة الاختيارية. تعليمات تحليل AI تتم إدارتها من ملفات إعداد ESSO على السيرفر.'
-      : 'These selections add optional systems. AI analysis instructions are managed in ESSO server configuration files.'}</p>
+      ? 'الأنظمة التي تختارها هنا هي التي ستظهر توصياتها في قائمة الأجهزة والكميات. لن نضيف أجهزة تخص أنظمة غير مختارة.'
+      : 'The systems selected here determine which devices appear in the recommendation and quantity list. AI analysis instructions are managed in ESSO server configuration files.'}</p>
       <div class="smart-checks">${reqs.map(([k, label]) =>
         `<label class="smart-check"><input type="checkbox" value="${k}" ${state.data.requirements.includes(k) ? 'checked' : ''}> ${esc(lang === 'ar' ? (arReq[k] || label) : label)}</label>`
       ).join('')}</div>${actions(true)}`;
@@ -233,6 +233,11 @@
       return '<tr><td>' + esc(x.item || x.type || '—') + '</td><td>' + esc(x.category || '—') + '</td><td class="smart-qty-cell">' + esc(x.quantity ?? 0) + '</td><td>' + esc(itemRooms) + '</td><td><span class="smart-badge ' + (required ? '' : 'review') + '">' + (required ? t.requiredLabel : t.recommended) + '</span></td></tr>';
     }).join('') : '<tr><td colspan="5">' + esc(t.noBaq) + '</td></tr>';
     const roomLabel = lang === 'ar' ? 'الغرف المكتشفة' : 'Rooms identified';
+    const selectedSystemLabels = state.data.requirements.map(k => {
+      const match = reqs.find(entry => entry[0] === k);
+      return lang === 'ar' ? (arReq[k] || (match ? match[1] : k)) : (match ? match[1] : k);
+    });
+    const selectedSystemsHtml = selectedSystemLabels.map(label => '<span class="smart-selected-system">' + esc(label) + '</span>').join('');
     const deviceLabel = lang === 'ar' ? 'إجمالي الأجهزة' : 'Total devices';
     const itemLabel = lang === 'ar' ? 'بنود BOQ' : 'BOQ line items';
     const reviewLabel = lang === 'ar' ? 'نقاط للمراجعة' : 'Items to review';
@@ -247,6 +252,8 @@
       '<div class="smart-stat"><span>' + deviceLabel + '</span><strong>' + totalDevices + '</strong></div>' +
       '<div class="smart-stat"><span>' + itemLabel + '</span><strong>' + boq.length + '</strong></div>' +
       '<div class="smart-stat"><span>' + reviewLabel + '</span><strong>' + reviews.length + '</strong></div></div>' +
+      '<h3 style="margin-top:24px">' + esc(t.selectedSystems) + '</h3>' +
+      '<div class="smart-selected-systems">' + selectedSystemsHtml + '</div>' +
       '<h3 style="margin-top:24px">' + esc(t.devices) + '</h3>' +
       '<p class="smart-muted">' + (lang === 'ar' ? 'التوزيع التالي مرتبط بأسماء الغرف التي تم التعرف عليها في الرسم المرفوع؛ أما نقاط التركيب النهائية فتُعتمد بعد المراجعة الهندسية.' : 'The distribution below follows room names identified in the uploaded drawing; exact installation points are confirmed after engineering review.') + '</p>' +
       '<div class="smart-room-distribution">' + distributionHtml + '</div>' +
@@ -282,6 +289,11 @@
         render();
       } else if (state.step === 1) {
         state.data.requirements = [...document.querySelectorAll('.smart-check input:checked')].map(x => x.value);
+        if (!state.data.requirements.length) {
+          state.error = t.chooseSystem;
+          render();
+          return;
+        }
         state.step = 2;
         render();
       } else if (state.step === 2) {
