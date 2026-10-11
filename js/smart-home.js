@@ -60,13 +60,13 @@
     curtains: 'الستائر',
     hvac: 'التكييف',
     cctv: 'الكاميرات',
-    access_control: 'الكوالين الذكية',
+    access_control: 'الكوالين',
     smoke_sensors: 'حساسات الدخان / إنذار الحريق',
     motion_sensors: 'حساسات الحركة/الوجود',
     temperature_sensors: 'حساسات الحرارة',
     gas_sensors: 'حساسات الغاز',
     water_leak: 'تسرب المياه',
-    voice_control: 'تحكم صوتي',
+    voice_control: 'التحكم الصوتي',
     networking: 'الشبكات'
   };
   const reqs = Object.entries({
@@ -79,7 +79,7 @@
     motion_sensors: 'Motion / Presence Sensors',
     temperature_sensors: 'Temperature Sensors',
     gas_sensors: 'Gas Sensors',
-    water_leak: 'Water Leak Detection',
+    water_leak: 'Water Leak Sensors',
     voice_control: 'Voice Control',
     networking: 'Networking'
   });
