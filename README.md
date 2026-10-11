@@ -11,7 +11,9 @@ This repository contains the ESSO website and Smart Home AI Configurator source.
 - File-based project/runtime storage
 
 ## Smart Home flow
-Requirements → floor-plan upload → AI analysis → preliminary BOQ → digital project viewer → final design request.
+Requirements → floor-plan upload → AI room identification → preliminary BOQ and room-by-room device distribution → final design request.
+
+The customer-facing result is a clear quantity report. It no longer includes a 2D floor-plan viewer or a 3D digital twin.
 
 ## Security
 Never commit a real `.env` or API key. Configure secrets on the PHP server using `.env.example`.
