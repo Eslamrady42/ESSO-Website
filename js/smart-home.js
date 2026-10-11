@@ -215,17 +215,55 @@
     const roomGroups = new Map();
     rec.forEach(x => {
       const room = String(x.room || (lang === 'ar' ? 'أماكن عامة' : 'General area'));
-      if (!roomGroups.has(room)) roomGroups.set(room, []);
-      roomGroups.get(room).push(x);
+      if (!roomGroups.has(room)) roomGroups.set(room, new Map());
+      const rawType = String(x.type || x.item || (lang === 'ar' ? 'جهاز ذكي' : 'Smart device')).trim();
+      const itemKey = rawType.toLocaleLowerCase();
+      const group = roomGroups.get(room);
+      const isRequired = x.required === 'required' || x.required === true;
+      if (!group.has(itemKey)) {
+        group.set(itemKey, {
+          ...x,
+          type: rawType,
+          qty: Number(x.qty) || 0,
+          required: isRequired,
+          reasons: x.reason ? [String(x.reason)] : []
+        });
+      } else {
+        const existing = group.get(itemKey);
+        existing.qty += Number(x.qty) || 0;
+        existing.required = existing.required || isRequired;
+        const reason = String(x.reason || '').trim();
+        if (reason && !existing.reasons.includes(reason)) existing.reasons.push(reason);
+      }
     });
-    const distributionHtml = roomGroups.size ? Array.from(roomGroups.entries()).map(([room, items]) => {
+
+    const distributionHtml = roomGroups.size ? Array.from(roomGroups.entries()).map(([room, itemMap]) => {
+      const items = Array.from(itemMap.values());
       const roomQty = items.reduce((n, x) => n + (Number(x.qty) || 0), 0);
-      const rows = items.map(x => {
-        const status = x.required === 'required' || x.required === true;
-        const purpose = x.reason || (lang === 'ar' ? 'مقترح لهذه الغرفة ضمن قواعد ESSO.' : 'Recommended for this room under ESSO rules.');
-        return '<div class="smart-room-device-row"><div class="smart-room-device-copy"><strong>' + esc(x.type || x.item || (lang === 'ar' ? 'جهاز ذكي' : 'Smart device')) + '</strong><p>' + esc(purpose) + '</p></div><span class="smart-room-qty">' + esc(x.qty ?? 1) + ' ' + (lang === 'ar' ? 'قطعة' : 'pcs') + '</span><span class="smart-badge ' + (status ? '' : 'review') + '">' + (status ? t.requiredLabel : t.recommended) + '</span></div>';
+      const requiredItems = items.filter(x => x.required).map((x, index) => ({ ...x, _order: index }));
+      const recommendedItems = items.filter(x => !x.required).map((x, index) => ({ ...x, _order: index }));
+      const renderRows = groupItems => groupItems.map(x => {
+        const reasons = Array.isArray(x.reasons) ? x.reasons : (x.reason ? [x.reason] : []);
+        const purpose = reasons.join(lang === 'ar' ? '؛ ' : '; ') ||
+          (lang === 'ar' ? 'مقترح لهذه الغرفة ضمن قواعد ESSO.' : 'Recommended for this room under ESSO rules.');
+        return '<div class="smart-room-device-row"><div class="smart-room-device-copy"><strong>' +
+          esc(x.type) + '</strong><p>' + esc(purpose) + '</p></div><span class="smart-room-qty">' +
+          esc(x.qty) + ' ' + (lang === 'ar' ? 'قطعة' : 'pcs') + '</span><span class="smart-badge ' +
+          (x.required ? '' : 'review') + '">' + (x.required ? t.requiredLabel : t.recommended) +
+          '</span></div>';
       }).join('');
-      return '<article class="smart-room-card"><div class="smart-room-card-head"><h4>' + esc(room) + '</h4><span class="smart-room-count">' + roomQty + ' ' + (lang === 'ar' ? 'جهاز' : 'devices') + '</span></div><div class="smart-room-device-list">' + rows + '</div></article>';
+      const requiredBlock = requiredItems.length
+        ? '<div class="smart-room-group"><h5 class="smart-room-group-title">' +
+          (lang === 'ar' ? 'إلزامي' : 'Required') + '</h5>' + renderRows(requiredItems) + '</div>'
+        : '';
+      const recommendedBlock = recommendedItems.length
+        ? '<div class="smart-room-group"><h5 class="smart-room-group-title">' +
+          (lang === 'ar' ? 'مقترح' : 'Recommended') + '</h5>' + renderRows(recommendedItems) + '</div>'
+        : '';
+      return '<article class="smart-room-card"><div class="smart-room-card-head"><h4>' +
+        esc(room) + '</h4><span class="smart-room-count">' + roomQty + ' ' +
+        (lang === 'ar' ? 'جهاز' : 'devices') + '</span></div><div class="smart-room-device-list">' +
+        requiredBlock + recommendedBlock + '</div></article>';
     }).join('') : '<div class="smart-info">' + esc(t.noBaq) + '</div>';
     const boqHtml = boq.length ? boq.map(x => {
       const itemRooms = Array.isArray(x.rooms) ? x.rooms.join(lang === 'ar' ? '، ' : ', ') : (x.rooms || '—');
