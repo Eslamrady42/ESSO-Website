@@ -16,19 +16,19 @@
       requirements: 'اختر الأنظمة المطلوبة', plan: 'رفع المخطط',
       planHint: 'JPG / PNG / PDF / DXF / DWG — حتى 10MB لكل ملف',
       drop: 'اسحب الملفات هنا أو اضغط للاختيار', analyze: 'تحليل المخطط',
-      next: 'التالي', back: 'السابق', result: 'نتائج التحليل والتصميم',
+      next: 'التالي', back: 'السابق', result: 'ملخص BOQ وتوزيع الأجهزة',
       review: 'المراجعة الهندسية', send: 'إرسال طلب التصميم النهائي', notes: 'ملاحظات إضافية',
       error: 'حدث خطأ. حاول مرة أخرى.', required: 'يرجى استكمال الاسم والبريد والهاتف.',
-      ai: 'جاري تحليل المخطط بالذكاء الاصطناعي...', openViewer: 'فتح المعاينة التفاعلية',
-      saved: 'تم إنشاء المعاينة الخاصة بمشروعك.', rooms: 'الغرف', detected: 'تم اكتشافها',
+      ai: 'جاري تحليل المخطط بالذكاء الاصطناعي...', openViewer: 'عرض قائمة الأجهزة',
+      saved: 'تم تجهيز قائمة مبدئية بالأجهزة والكميات حسب المخطط.', rooms: 'الغرف', detected: 'تم اكتشافها',
       aiStatus: 'حالة تحليل AI', aiCompleted: 'تم التحليل', aiNotRun: 'لم يتم تشغيل AI', aiError: 'تعذر إكمال التحليل',
-      roomBreakdown: 'تحليل الغرف', devices: 'الأجهزة المقترحة حسب الغرفة', boq: 'BOQ مبدئي',
+      roomBreakdown: 'الغرف المكتشفة من المخطط', devices: 'توزيع الأجهزة حسب الغرفة', boq: 'جدول الكميات المبدئي (BOQ)',
       confidence: 'الثقة', doors: 'أبواب', windows: 'شبابيك', typeLabel: 'النوع',
       floor: 'الدور', source: 'المصدر', requiredLabel: 'إلزامي', recommended: 'موصى به',
       reason: 'السبب', noRooms: 'لم يتم اكتشاف غرف موثوقة. ارفع مخططًا أوضح.',
       aiNeedsKey: 'ضع GEMINI_API_KEY في ملف .env على السيرفر (Gemini مجاني للتجربة).',
-      geometry: 'المخطط الرقمي', preliminary: 'المخطط الرقمي أولي وغير معتمد للتنفيذ.',
-      viewPlan: 'عرض المخطط الرقمي', viewerHint: 'المعاينة تفاعلية ويمكن استعراض الغرف والأجهزة.',
+      geometry: 'تنبيه', preliminary: 'هذه قائمة مبدئية مبنية على الغرف التي أمكن تحديدها من المخطط. ستراجع ESSO الكميات والتوزيع قبل اعتماد عرض السعر أو التنفيذ.',
+      viewPlan: 'عرض قائمة الأجهزة', viewerHint: 'يعرض التقرير قائمة الكميات وتوزيع الأجهزة فقط، دون مخطط 2D أو نموذج 3D.',
       retry: 'إعادة التحليل', noBaq: 'لم يتم إنشاء BOQ بعد.',
     },
     en: {
@@ -37,19 +37,19 @@
       area: 'Area m²', floors: 'Floors', location: 'Location', requirements: 'Select required systems',
       plan: 'Upload Floor Plan', planHint: 'JPG / PNG / PDF / DXF / DWG — up to 10MB per file',
       drop: 'Drag files here or click to choose', analyze: 'Analyze Plan', next: 'Next', back: 'Back',
-      result: 'Analysis & Design Results', review: 'Engineering Review', send: 'Request Final Design',
+      result: 'Preliminary BOQ & Device Distribution', review: 'Engineering Review', send: 'Request Final Design',
       notes: 'Additional notes', error: 'Something went wrong. Please try again.',
       required: 'Please complete name, email and phone.', ai: 'Analyzing your floor plan with AI...',
-      openViewer: 'Open Interactive Preview', saved: 'Your private project preview has been created.',
+      openViewer: 'View Device List', saved: 'A preliminary device and quantity list has been prepared from the plan.',
       rooms: 'Rooms', detected: 'detected', aiStatus: 'AI analysis status', aiCompleted: 'Completed',
-      aiNotRun: 'Not run', aiError: 'Analysis failed', roomBreakdown: 'Room Analysis',
-      devices: 'Room-by-room Device Plan', boq: 'Preliminary BOQ', confidence: 'Confidence',
+      aiNotRun: 'Not run', aiError: 'Analysis failed', roomBreakdown: 'Rooms Identified from the Plan',
+      devices: 'Device Distribution by Room', boq: 'Preliminary Bill of Quantities (BOQ)', confidence: 'Confidence',
       doors: 'Doors', windows: 'Windows', typeLabel: 'Type', floor: 'Floor', source: 'Source',
       requiredLabel: 'Required', recommended: 'Recommended', reason: 'Reason',
       noRooms: 'No reliable rooms were detected. Upload a clearer plan.',
       aiNeedsKey: 'Configure GEMINI_API_KEY in the server .env file (Gemini free tier for testing).',
-      geometry: 'Digital Floor Plan', preliminary: 'This digital floor plan is preliminary and not approved for construction.',
-      viewPlan: 'View Digital Plan', viewerHint: 'The preview is interactive and shows rooms and devices.',
+      geometry: 'Important Note', preliminary: 'This is a preliminary list based on the rooms identifiable in the uploaded plan. ESSO will review quantities and distribution before approving a quotation or execution.',
+      viewPlan: 'View Device List', viewerHint: 'This report shows the device quantities and room distribution only; no 2D plan or 3D model is displayed.',
       retry: 'Analyze Again', noBaq: 'No BOQ was generated yet.',
     }
   }[lang];
@@ -117,7 +117,7 @@
     const d = state.data;
     return `<h2>${t.steps[0]}</h2><p class="smart-muted">${lang === 'ar'
       ? 'بيانات المشروع هي الأساس للنموذج الرقمي الموحد وتحليل المخطط.'
-      : 'Project data becomes the basis for the unified digital model and plan analysis.'}</p>
+      : 'Project details help us understand your needs and prepare a preliminary device list and BOQ from the floor plan.'}</p>
       <div class="smart-grid">
         <div class="smart-field"><label>${t.name}</label><input id="name" value="${esc(d.name)}" autocomplete="name"></div>
         <div class="smart-field"><label>${t.email}</label><input id="email" type="email" value="${esc(d.email)}" autocomplete="email"></div>
@@ -202,54 +202,55 @@
     const floors = a.floors || [];
     const rec = r.recommendations || [];
     const boq = r.boq || [];
-    const reviews = r.review_required || [];
+    const reviews = r.review_required || a.needs_review || [];
     const ai = r.ai || {};
     const token = r.project_token || '';
     const rooms = floors.reduce((n, f) => n + (f.rooms || []).length, 0);
-    const viewerFile = lang === 'ar' ? 'project-viewer.html' : 'project-viewer_en.html';
-    const viewerUrl = token ? `${viewerFile}?token=${encodeURIComponent(token)}` : '';
-
-    return `<h2>${t.result}</h2>
-      <div class="smart-result-head">
-        <div class="smart-info"><strong>${t.aiStatus}:</strong> ${statusBadge(ai)} ${ai.model ? `<span class="smart-muted-inline">${esc(ai.model)}</span>` : ''}</div>
-        ${ai.status === 'not_run' || ai.status === 'error' ? `<div class="smart-error">${t.aiNeedsKey}</div>` : ''}
-      </div>
-      <div class="smart-summary">
-        <div class="smart-stat"><span>${t.area}</span><strong>${a.project?.total_area_sqm ?? state.data.area ?? 'TBD'}</strong></div>
-        <div class="smart-stat"><span>${t.floors}</span><strong>${a.project?.floors_count || floors.length || state.data.floors || 'TBD'}</strong></div>
-        <div class="smart-stat"><span>${t.rooms}</span><strong>${rooms}</strong></div>
-        <div class="smart-stat"><span>${t.review}</span><strong>${reviews.length}</strong></div>
-      </div>
-
-      <h3>${t.roomBreakdown}</h3>
-      <div class="smart-table-wrap"><table class="smart-table"><thead><tr>
-        <th>${lang === 'ar' ? 'الغرفة' : 'Room'}</th><th>${t.typeLabel}</th><th>${t.floor}</th><th>${t.area}</th><th>${t.doors}</th><th>${t.windows}</th><th>${t.confidence}</th>
-      </tr></thead><tbody>${roomRows(floors)}</tbody></table></div>
-
-      <h3 style="margin-top:24px">${t.devices}</h3>
-      <div class="smart-table-wrap"><table class="smart-table"><thead><tr>
-        <th>${lang === 'ar' ? 'الغرفة' : 'Room'}</th><th>${lang === 'ar' ? 'الجهاز' : 'Device'}</th><th>${lang === 'ar' ? 'الكمية' : 'Qty'}</th><th>${lang === 'ar' ? 'الفئة' : 'Category'}</th><th>${t.reason}</th><th>${t.source}</th>
-      </tr></thead><tbody>${deviceRows(rec)}</tbody></table></div>
-
-      <h3 style="margin-top:24px">${t.boq}</h3>
-      <div class="smart-table-wrap"><table class="smart-table"><thead><tr>
-        <th>${lang === 'ar' ? 'الفئة' : 'Category'}</th><th>${lang === 'ar' ? 'البند' : 'Item'}</th><th>${lang === 'ar' ? 'الكمية' : 'Qty'}</th><th>${lang === 'ar' ? 'الغرف' : 'Rooms'}</th><th>${t.source}</th>
-      </tr></thead><tbody>${boqRows(boq)}</tbody></table></div>
-
-      <div class="smart-info" style="margin-top:24px"><strong>${t.geometry}</strong><p>${t.preliminary}</p><p>${t.viewerHint}</p></div>
-
-      ${reviews.length ? `<div class="smart-info smart-review" style="margin-top:16px"><strong>${t.review}</strong><ul>${reviews.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
-      ${a.analysis_notes?.length ? `<div class="smart-info" style="margin-top:16px"><strong>${lang === 'ar' ? 'ملاحظات التحليل' : 'Analysis Notes'}</strong><ul>${a.analysis_notes.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
-
-      ${token ? `<div class="smart-info" style="margin-top:18px">${esc(t.saved)}</div>
-        <div class="smart-actions">
-          <a class="smart-btn secondary" href="${viewerUrl}">${t.openViewer}</a>
-          <button type="button" class="smart-btn accent" id="submitBtn">${t.send}</button>
-        </div>
-        <div class="smart-field"><label>${t.notes}</label><textarea id="requestNotes"></textarea></div>`
-        : `<div class="smart-actions"><button type="button" class="smart-btn secondary" id="backBtn">${t.retry}</button></div>`}`;
+    const totalDevices = rec.reduce((n, x) => n + (Number(x.qty) || 0), 0);
+    const roomGroups = new Map();
+    rec.forEach(x => {
+      const room = String(x.room || (lang === 'ar' ? 'أماكن عامة' : 'General area'));
+      if (!roomGroups.has(room)) roomGroups.set(room, []);
+      roomGroups.get(room).push(x);
+    });
+    const distributionHtml = roomGroups.size ? Array.from(roomGroups.entries()).map(([room, items]) => {
+      const roomQty = items.reduce((n, x) => n + (Number(x.qty) || 0), 0);
+      const rows = items.map(x => {
+        const status = x.required === 'required' || x.required === true;
+        const purpose = x.reason || (lang === 'ar' ? 'مقترح لهذه الغرفة ضمن قواعد ESSO.' : 'Recommended for this room under ESSO rules.');
+        return '<div class="smart-room-device-row"><div class="smart-room-device-copy"><strong>' + esc(x.type || x.item || (lang === 'ar' ? 'جهاز ذكي' : 'Smart device')) + '</strong><p>' + esc(purpose) + '</p></div><span class="smart-room-qty">' + esc(x.qty ?? 1) + ' ' + (lang === 'ar' ? 'قطعة' : 'pcs') + '</span><span class="smart-badge ' + (status ? '' : 'review') + '">' + (status ? t.requiredLabel : t.recommended) + '</span></div>';
+      }).join('');
+      return '<article class="smart-room-card"><div class="smart-room-card-head"><h4>' + esc(room) + '</h4><span class="smart-room-count">' + roomQty + ' ' + (lang === 'ar' ? 'جهاز' : 'devices') + '</span></div><div class="smart-room-device-list">' + rows + '</div></article>';
+    }).join('') : '<div class="smart-info">' + esc(t.noBaq) + '</div>';
+    const boqHtml = boq.length ? boq.map(x => {
+      const itemRooms = Array.isArray(x.rooms) ? x.rooms.join(lang === 'ar' ? '، ' : ', ') : (x.rooms || '—');
+      const required = x.required === true || x.required === 'required';
+      return '<tr><td>' + esc(x.item || x.type || '—') + '</td><td>' + esc(x.category || '—') + '</td><td class="smart-qty-cell">' + esc(x.quantity ?? 0) + '</td><td>' + esc(itemRooms) + '</td><td><span class="smart-badge ' + (required ? '' : 'review') + '">' + (required ? t.requiredLabel : t.recommended) + '</span></td></tr>';
+    }).join('') : '<tr><td colspan="5">' + esc(t.noBaq) + '</td></tr>';
+    const roomLabel = lang === 'ar' ? 'الغرف المكتشفة' : 'Rooms identified';
+    const deviceLabel = lang === 'ar' ? 'إجمالي الأجهزة' : 'Total devices';
+    const itemLabel = lang === 'ar' ? 'بنود BOQ' : 'BOQ line items';
+    const reviewLabel = lang === 'ar' ? 'نقاط للمراجعة' : 'Items to review';
+    const statusText = ai.status === 'completed' ? (lang === 'ar' ? 'اكتمل التحليل المبدئي' : 'Preliminary analysis complete') : (ai.status === 'error' ? t.aiError : t.aiNotRun);
+    const reviewHtml = reviews.length ? '<div class="smart-info smart-review" style="margin-top:16px"><strong>' + esc(t.review) + '</strong><ul>' + reviews.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '';
+    const notes = Array.isArray(a.analysis_notes) && a.analysis_notes.length ? '<div class="smart-info" style="margin-top:16px"><strong>' + (lang === 'ar' ? 'ملاحظات على المخطط' : 'Plan Notes') + '</strong><ul>' + a.analysis_notes.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '';
+    return '<h2>' + esc(t.result) + '</h2>' +
+      '<p class="smart-muted">' + (lang === 'ar' ? 'راجع الأجهزة المقترحة لكل غرفة ثم جدول الكميات الإجمالي. لا يتم عرض مخطط 2D أو نموذج 3D للعميل.' : 'Review the proposed devices for each room, then the consolidated BOQ. No customer-facing 2D plan or 3D model is shown.') + '</p>' +
+      '<div class="smart-result-head"><div class="smart-info"><strong>' + (lang === 'ar' ? 'حالة التحليل:' : 'Analysis status:') + '</strong> <span class="smart-badge ' + (ai.status === 'completed' ? '' : 'review') + '">' + esc(statusText) + '</span></div>' +
+      ((ai.status === 'not_run' || ai.status === 'error') ? '<div class="smart-error">' + esc(t.aiNeedsKey) + '</div>' : '') + '</div>' +
+      '<div class="smart-summary"><div class="smart-stat"><span>' + roomLabel + '</span><strong>' + rooms + '</strong></div>' +
+      '<div class="smart-stat"><span>' + deviceLabel + '</span><strong>' + totalDevices + '</strong></div>' +
+      '<div class="smart-stat"><span>' + itemLabel + '</span><strong>' + boq.length + '</strong></div>' +
+      '<div class="smart-stat"><span>' + reviewLabel + '</span><strong>' + reviews.length + '</strong></div></div>' +
+      '<h3 style="margin-top:24px">' + esc(t.devices) + '</h3>' +
+      '<p class="smart-muted">' + (lang === 'ar' ? 'التوزيع التالي مرتبط بأسماء الغرف التي تم التعرف عليها في الرسم المرفوع؛ أما نقاط التركيب النهائية فتُعتمد بعد المراجعة الهندسية.' : 'The distribution below follows room names identified in the uploaded drawing; exact installation points are confirmed after engineering review.') + '</p>' +
+      '<div class="smart-room-distribution">' + distributionHtml + '</div>' +
+      '<h3 style="margin-top:28px">' + esc(t.boq) + '</h3>' +
+      '<div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>' + (lang === 'ar' ? 'البند' : 'Item') + '</th><th>' + (lang === 'ar' ? 'الفئة' : 'Category') + '</th><th>' + (lang === 'ar' ? 'الكمية' : 'Quantity') + '</th><th>' + (lang === 'ar' ? 'الغرف المستهدفة' : 'Rooms') + '</th><th>' + (lang === 'ar' ? 'الحالة' : 'Status') + '</th></tr></thead><tbody>' + boqHtml + '</tbody></table></div>' +
+      '<div class="smart-info smart-boq-note" style="margin-top:22px"><strong>' + esc(t.geometry) + '</strong><p>' + esc(t.preliminary) + '</p></div>' +
+      reviewHtml + notes +
+      (token ? '<div class="smart-info" style="margin-top:18px">' + esc(t.saved) + '</div><div class="smart-field"><label for="requestNotes">' + esc(t.notes) + '</label><textarea id="requestNotes" placeholder="' + (lang === 'ar' ? 'أي تفضيلات أو ملاحظات إضافية...' : 'Any extra preferences or notes...') + '"></textarea></div><div class="smart-actions"><button type="button" class="smart-btn accent" id="submitBtn">' + esc(t.send) + '</button></div>' : '<div class="smart-actions"><button type="button" class="smart-btn secondary" id="backBtn">' + esc(t.retry) + '</button></div>');
   }
-
   function bind() {
     document.getElementById('backBtn')?.addEventListener('click', () => {
       state.error = '';
