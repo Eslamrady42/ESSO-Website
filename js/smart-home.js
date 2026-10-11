@@ -54,19 +54,34 @@
     }
   }[lang];
 
+  // The customer can choose only these 12 systems; keep this order aligned with the ESSO offer.
   const arReq = {
-    lighting: 'الإضاءة', curtains: 'الستائر', hvac: 'التكييف', security: 'الأمن', cctv: 'الكاميرات',
-    access_control: 'التحكم بالدخول', door_sensors: 'حساسات الأبواب', window_sensors: 'حساسات النوافذ', smoke_sensors: 'حساسات الدخان / إنذار الحريق',
-    motion_sensors: 'حساسات الحركة/الوجود', temperature_sensors: 'حساسات الحرارة', gas_sensors: 'حساسات الغاز',
-    water_leak: 'تسرب المياه', voice_control: 'تحكم صوتي', mobile_control: 'تحكم بالموبايل',
-    central_panel: 'لوحة مركزية', networking: 'الشبكات', scenes: 'المشاهد', home_assistant: 'Home Assistant'
+    lighting: 'الإضاءة',
+    curtains: 'الستائر',
+    hvac: 'التكييف',
+    cctv: 'الكاميرات',
+    access_control: 'الكوالين الذكية',
+    smoke_sensors: 'حساسات الدخان / إنذار الحريق',
+    motion_sensors: 'حساسات الحركة/الوجود',
+    temperature_sensors: 'حساسات الحرارة',
+    gas_sensors: 'حساسات الغاز',
+    water_leak: 'تسرب المياه',
+    voice_control: 'تحكم صوتي',
+    networking: 'الشبكات'
   };
   const reqs = Object.entries({
-    lighting: 'Lighting', curtains: 'Curtains', hvac: 'HVAC', security: 'Security', cctv: 'CCTV',
-    access_control: 'Access Control', door_sensors: 'Door Sensors', window_sensors: 'Window Sensors', smoke_sensors: 'Smoke Detection',
-    motion_sensors: 'Motion / Presence', temperature_sensors: 'Temperature Sensors', gas_sensors: 'Gas Sensors',
-    water_leak: 'Water Leak', voice_control: 'Voice Control', mobile_control: 'Mobile App',
-    central_panel: 'Central Panel', networking: 'Networking', scenes: 'Scenes', home_assistant: 'Home Assistant'
+    lighting: 'Lighting',
+    curtains: 'Curtains',
+    hvac: 'Air Conditioning',
+    cctv: 'Cameras',
+    access_control: 'Smart Locks',
+    smoke_sensors: 'Smoke Sensors / Fire Alarm',
+    motion_sensors: 'Motion / Presence Sensors',
+    temperature_sensors: 'Temperature Sensors',
+    gas_sensors: 'Gas Sensors',
+    water_leak: 'Water Leak Detection',
+    voice_control: 'Voice Control',
+    networking: 'Networking'
   });
 
   const state = { step: 0, data: { requirements: [] }, files: [], result: null, error: '' };
