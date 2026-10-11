@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ESSO | معاينة المشروع</title>
+<title>ESSO | تقرير الكميات المبدئي</title>
+<meta name="description" content="قائمة كميات وتوزيع أجهزة المنزل الذكي حسب الغرف من ESSO.">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/project-viewer.css">
 </head>
@@ -15,54 +16,34 @@
       <li><a href="index.html">الرئيسية</a></li>
       <li><a href="smart-home.html" class="active">المنزل الذكي</a></li>
     </ul></nav>
+    <div class="header-cta"><a href="smart-home_en.html" class="btn btn-outline">English</a></div>
   </div>
 </header>
 <main class="viewer-page">
   <div class="container">
-    <div id="viewerStatus" class="viewer-status">جاري تحميل المعاينة المحمية…</div>
+    <div id="viewerStatus" class="viewer-status">جاري تحميل تقرير الكميات…</div>
     <section id="viewer" class="viewer-shell" hidden>
       <div class="viewer-top">
         <div>
-          <span class="viewer-kicker">ESSO SMART HOME DIGITAL MODEL</span>
-          <h1 id="projectTitle">معاينة المشروع</h1>
-          <p id="projectSubtitle">نموذج رقمي أولي تم إنشاؤه من مخطط المشروع المرفوع.</p>
+          <span class="viewer-kicker">ESSO • SMART HOME BOQ</span>
+          <h1 id="projectTitle">تقرير الكميات المبدئي</h1>
+          <p id="projectSubtitle">قائمة مبسطة بالأجهزة المقترحة حسب الغرف.</p>
         </div>
         <span class="project-token" id="projectToken"></span>
       </div>
-      <div class="viewer-toolbar">
-        <div class="floor-tabs" id="floorTabs"></div>
-        <div class="viewer-legend">
-          <span><i class="legend-dot room"></i> غرفة</span>
-          <span><i class="legend-dot review"></i> تحتاج مراجعة</span>
-          <span><i class="legend-dot device"></i> جهاز ذكي</span>
-        </div>
-      </div>
-      <section class="viewer-grid">
-        <div class="viewer-panel">
-          <div class="viewer-panel-head"><h2>مخطط بأسلوب Home Assistant</h2><span id="planStatus"></span></div>
-          <div class="watermark">ESSO • أولي • غير معتمد للتنفيذ</div>
-          <div id="floorPlan2d" class="floor-plan-2d"></div>
-        </div>
-        <div class="viewer-panel viewer-panel-3d">
-          <div class="viewer-panel-head"><h2>النموذج الرقمي ثلاثي الأبعاد</h2><span class="viewer-hint">اسحب للدوران • مرر للتكبير</span></div>
-          <div id="model3d" class="model-3d"></div>
-          <div id="roomDetails" class="room-details" hidden></div>
-        </div>
-      </section>
       <section class="viewer-info">
         <div class="viewer-stat-grid" id="viewerStats"></div>
-        <div class="viewer-two-col">
-          <div><h2>خطة الأجهزة حسب الغرفة</h2><div id="deviceTable"></div></div>
-          <div><h2>BOQ مبدئي</h2><div id="boqTable"></div></div>
-        </div>
+        <h2>توزيع الأجهزة حسب الغرفة</h2>
+        <div id="deviceTable" class="boq-room-grid"></div>
+        <h2 style="margin-top:32px">جدول الكميات المبدئي (BOQ)</h2>
+        <div id="boqTable"></div>
         <div id="reviewBox" class="viewer-review" hidden></div>
-        <p class="viewer-note">هذه المعاينة محمية. الشكل المعروض هو نموذج مساعد هندسي تم إنشاؤه من المخطط المرفوع، ويجب التحقق منه قبل التنفيذ.</p>
+        <p class="viewer-note">هذه قائمة مبدئية للتوضيح والتسعير الأولي وليست اعتمادًا للتنفيذ. ستراجع ESSO الكميات ومواضع التركيب قبل إصدار عرض السعر النهائي.</p>
         <a href="smart-home.html" class="btn btn-outline">العودة إلى المنزل الذكي</a>
       </section>
     </section>
   </div>
 </main>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}</script>
-<script type="module" src="js/project-viewer.js?v=40"></script>
+<script src="js/project-viewer.js?v=41" defer></script>
 </body>
 </html>
