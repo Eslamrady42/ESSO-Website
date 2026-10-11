@@ -362,6 +362,8 @@ function validate_analysis(array $data): array
 
 function build_recommendations(array $a, array $requirements): array
 {
+    // Customer-selected systems are the source of truth for suggestions.
+    // Never add a device from an unselected system.
     $req = array_fill_keys($requirements, true);
     $items = [];
 
@@ -374,7 +376,7 @@ function build_recommendations(array $a, array $requirements): array
         string $reason,
         float $confidence,
         string $rule,
-        bool $required = true
+        bool $required = false
     ): void {
         if ($qty <= 0) {
             return;
@@ -391,177 +393,302 @@ function build_recommendations(array $a, array $requirements): array
         ];
     };
 
-    $foundWaterArea = false;
     $foundKitchen = false;
+    $foundWetArea = false;
+    $roomsCount = 0;
 
-    foreach ($a['floors'] as $fl) {
-        foreach ($fl['rooms'] as $r) {
-            $n = $r['name'];
-            $type = normalize_room_type($r['type'], $n);
-            $c = (float)$r['confidence'];
+    foreach (($a['floors'] ?? []) as $fl) {
+        foreach (($fl['rooms'] ?? []) as $r) {
+            $roomsCount++;
+            $name = clean_string($r['name'] ?? 'Room', 120);
+            $type = normalize_room_type($r['type'] ?? 'other', $name);
+            $confidence = (float)($r['confidence'] ?? 0);
+            $doors = max(0, (int)($r['doors'] ?? 0));
+            $windows = max(0, (int)($r['windows'] ?? 0));
 
-            // Bathroom-specific ESSO rule:
-            // bathrooms receive ONLY a motion sensor for lighting/electrical control
-            // and a water-leak sensor. Excludes smart switches, curtains, smoke,
-            // IR, HVAC and all other optional room-level devices.
+            if ($type === 'kitchen') {
+                $foundKitchen = true;
+            }
+            if (in_array($type, ['bathroom', 'kitchen', 'laundry', 'utility'], true)) {
+                $foundWetArea = true;
+            }
+
+            // Bathrooms are deliberately restricted to only the chosen
+            // bathroom-compatible systems: lighting-by-motion and water leak.
+            // They never receive curtains, smoke, IR/HVAC, switches, CCTV,
+            // door/window sensors, or generic room-level add-ons.
             if ($type === 'bathroom') {
-                $foundWaterArea = true;
-                $add(
-                    $items,
-                    $n,
-                    'Lighting / Automation',
-                    'Motion sensor for bathroom lighting control',
-                    1,
-                    'ESSO bathroom rule: motion sensor controls bathroom lighting/electricity',
-                    $c,
-                    'bathroom-motion-lighting',
-                    true
-                );
-                $add(
-                    $items,
-                    $n,
-                    'Safety',
-                    'Water leak sensor',
-                    1,
-                    'ESSO bathroom rule: one water leak sensor per bathroom',
-                    $c,
-                    'leak-per-bathroom',
-                    true
-                );
+                if (isset($req['lighting']) || isset($req['motion_sensors'])) {
+                    $add(
+                        $items,
+                        $name,
+                        'Lighting / Automation',
+                        'Motion sensor for bathroom lighting control',
+                        1,
+                        'Bathroom rule: motion sensor controls lighting/electricity',
+                        $confidence,
+                        'bathroom-motion-lighting',
+                        true
+                    );
+                }
+                if (isset($req['water_leak'])) {
+                    $add(
+                        $items,
+                        $name,
+                        'Safety',
+                        'Water leak sensor',
+                        1,
+                        'Bathroom rule: one water leak sensor per bathroom',
+                        $confidence,
+                        'leak-per-bathroom',
+                        true
+                    );
+                }
                 continue;
             }
 
-            $switchQty = in_array($type, ['reception', 'master_bedroom'], true) ? 2 : 1;
-
-            // ESSO core lighting rule: every detected room gets a switch;
-            // reception and master bedroom get two 4-gang switches.
-            $add(
-                $items,
-                $n,
-                'Lighting',
-                'Zigbee 4-gang lighting switch',
-                $switchQty,
-                in_array($type, ['reception', 'master_bedroom'], true)
-                    ? 'ESSO rule: reception/master bedroom = 2 switches'
-                    : 'ESSO rule: 1 lighting switch per room',
-                $c,
-                in_array($type, ['reception', 'master_bedroom'], true)
-                    ? 'zigbee-4gang-reception-master'
-                    : 'zigbee-4gang-per-room',
-                true
-            );
-
-            // IR and smoke are applied to habitable rooms; service/wet rooms are excluded.
-            if (room_is_habitable($type)) {
+            // LIGHTING: reception and master bedroom get two switches;
+            // other detected non-bathroom rooms get one.
+            if (isset($req['lighting'])) {
+                $switchQty = in_array($type, ['reception', 'master_bedroom'], true) ? 2 : 1;
                 $add(
                     $items,
-                    $n,
-                    'Comfort',
-                    'IR HVAC/Remote control',
-                    1,
-                    'ESSO rule: one IR point per habitable room',
-                    $c,
-                    'ir-per-habitable-room',
+                    $name,
+                    'Lighting',
+                    'Zigbee 4-gang lighting switch',
+                    $switchQty,
+                    $switchQty === 2
+                        ? 'Selected lighting system: two switches for reception/master bedroom'
+                        : 'Selected lighting system: one switch for this room',
+                    $confidence,
+                    $switchQty === 2 ? 'zigbee-4gang-reception-master' : 'zigbee-4gang-per-room',
                     true
                 );
+            }
+
+            // CURTAINS: only when selected, only when windows were detected.
+            if (isset($req['curtains']) && $windows > 0) {
                 $add(
                     $items,
-                    $n,
+                    $name,
+                    'Curtains',
+                    'Smart curtain channel',
+                    $windows,
+                    'Selected curtains system: one channel per detected window',
+                    $confidence,
+                    'curtain-per-window'
+                );
+            }
+
+            // HVAC: recommendations appear only when HVAC was selected.
+            if (isset($req['hvac'])) {
+                $add(
+                    $items,
+                    $name,
+                    'HVAC',
+                    'HVAC control interface',
+                    1,
+                    'Selected HVAC system: one control interface allowance for this room',
+                    $confidence,
+                    'hvac-per-room'
+                );
+                if (room_is_habitable($type)) {
+                    $add(
+                        $items,
+                        $name,
+                        'Comfort',
+                        'IR HVAC/Remote control',
+                        1,
+                        'Selected HVAC system: IR control for compatible room equipment',
+                        $confidence,
+                        'ir-per-habitable-room'
+                    );
+                }
+            }
+
+            // FIRE/SMOKE: shown only when smoke detection is selected.
+            if (isset($req['smoke_sensors']) && room_is_habitable($type)) {
+                $add(
+                    $items,
+                    $name,
                     'Safety',
                     'Smoke detector',
                     1,
-                    'ESSO rule: one smoke detector per habitable room',
-                    $c,
+                    'Selected smoke detection system: one detector per habitable room',
+                    $confidence,
                     'smoke-per-habitable-room',
                     true
                 );
             }
 
-            if ($type === 'kitchen') {
-                $foundKitchen = true;
-                $foundWaterArea = true;
-                $add($items, $n, 'Safety', 'Gas detector', 1, 'ESSO rule: gas detector in kitchen', $c, 'gas-in-kitchen', true);
-                $add($items, $n, 'Safety', 'Motorized gas valve', 1, 'ESSO rule: motorized gas shutoff valve in kitchen', $c, 'gas-valve-in-kitchen', true);
-                $add($items, $n, 'Safety', 'Water leak sensor', 1, 'ESSO rule: water leak sensor in kitchen', $c, 'leak-in-kitchen', true);
+            // SECURITY: system integration is a project-level allowance.
+            // Specific device families (CCTV, motion, door/window sensors)
+            // remain independently controlled by their own selections.
+            if (isset($req['security'])) {
+                // Add it once after room processing below.
             }
 
-            // Optional requirements selected by the customer.
-            $doors = (int)$r['doors'];
-            $win = (int)$r['windows'];
-            if (isset($req['curtains']) && $win > 0) {
-                $add($items, $n, 'Curtains', 'Smart curtain channel', $win, 'Window coverage', $c, 'curtain-per-window', false);
-            }
-            if (isset($req['hvac'])) {
-                $add($items, $n, 'HVAC', 'HVAC control interface', 1, 'Room HVAC control', $c, 'hvac-per-room', false);
-            }
-            if (isset($req['door_sensors']) && $doors > 0) {
-                $add($items, $n, 'Sensors', 'Door sensor', $doors, 'Door monitoring', $c, 'door-per-door', false);
-            }
-            if (isset($req['window_sensors']) && $win > 0) {
-                $add($items, $n, 'Sensors', 'Window sensor', $win, 'Window monitoring', $c, 'window-per-window', false);
-            }
             if (isset($req['motion_sensors'])) {
-                $add($items, $n, 'Sensors', 'Motion / presence sensor', 1, 'Occupancy monitoring', $c, 'occupancy-per-room', false);
+                $add(
+                    $items,
+                    $name,
+                    'Sensors',
+                    'Motion / presence sensor',
+                    1,
+                    'Selected motion detection system',
+                    $confidence,
+                    'occupancy-per-room'
+                );
             }
             if (isset($req['temperature_sensors'])) {
-                $add($items, $n, 'Sensors', 'Temperature sensor', 1, 'Temperature monitoring', $c, 'temperature-per-room', false);
+                $add(
+                    $items,
+                    $name,
+                    'Sensors',
+                    'Temperature sensor',
+                    1,
+                    'Selected temperature monitoring system',
+                    $confidence,
+                    'temperature-per-room'
+                );
             }
-            if (isset($req['water_leak']) && in_array($type, ['bathroom', 'kitchen', 'laundry', 'utility'], true)) {
-                $add($items, $n, 'Safety', 'Water leak sensor', 1, 'Requested wet-area leak monitoring', $c, 'requested-leak-zone', false);
+            if (isset($req['water_leak']) && in_array($type, ['kitchen', 'laundry', 'utility'], true)) {
+                $add(
+                    $items,
+                    $name,
+                    'Safety',
+                    'Water leak sensor',
+                    1,
+                    'Selected water leak system for wet/service area',
+                    $confidence,
+                    'requested-leak-zone',
+                    true
+                );
             }
             if (isset($req['gas_sensors']) && $type === 'kitchen') {
-                $add($items, $n, 'Safety', 'Gas detector', 1, 'Requested gas monitoring', $c, 'requested-gas-in-kitchen', false);
+                $add(
+                    $items,
+                    $name,
+                    'Safety',
+                    'Gas detector',
+                    1,
+                    'Selected gas detection system: one detector in the kitchen',
+                    $confidence,
+                    'gas-in-kitchen',
+                    true
+                );
+                $add(
+                    $items,
+                    $name,
+                    'Safety',
+                    'Motorized gas valve',
+                    1,
+                    'Selected gas safety system: automatic gas shutoff valve',
+                    $confidence,
+                    'gas-valve-in-kitchen',
+                    true
+                );
             }
             if (isset($req['cctv'])) {
-                $add($items, $n, 'Security', 'CCTV point', 1, 'Security coverage zone', $c, 'cctv-by-zone', false);
+                $add(
+                    $items,
+                    $name,
+                    'Security',
+                    'CCTV point',
+                    1,
+                    'Selected CCTV system: preliminary coverage point; final camera positions require review',
+                    $confidence,
+                    'cctv-by-zone'
+                );
+            }
+            if (isset($req['door_sensors']) && $doors > 0) {
+                $add(
+                    $items,
+                    $name,
+                    'Sensors',
+                    'Door sensor',
+                    $doors,
+                    'Selected door monitoring system',
+                    $confidence,
+                    'door-per-door'
+                );
+            }
+            if (isset($req['window_sensors']) && $windows > 0) {
+                $add(
+                    $items,
+                    $name,
+                    'Sensors',
+                    'Window sensor',
+                    $windows,
+                    'Selected window monitoring system',
+                    $confidence,
+                    'window-per-window'
+                );
             }
             if (isset($req['access_control']) && $doors > 0) {
-                $add($items, $n, 'Security', 'Access control point', 1, 'Requested access control', $c, 'access-control-zone', false);
+                $add(
+                    $items,
+                    $name,
+                    'Security',
+                    'Access control point',
+                    1,
+                    'Selected access control system; final door selection requires review',
+                    $confidence,
+                    'access-control-zone'
+                );
             }
         }
     }
 
-    // Main water shutoff is one project-level device whenever the project contains a kitchen/bathroom wet area.
-    if ($foundWaterArea) {
+    if (isset($req['security'])) {
+        $add(
+            $items,
+            'Project',
+            'Security',
+            'Smart security alarm integration',
+            1,
+            'Selected security system integration allowance',
+            100,
+            'selected-security-integration'
+        );
+    }
+
+    // Water valve belongs only to the selected water-leak system.
+    if (isset($req['water_leak']) && $foundWetArea) {
         $add(
             $items,
             'Project',
             'Safety',
             'Motorized main water valve',
             1,
-            'ESSO rule: one motorized valve on the main water line',
+            'Selected water leak system: one main-line water shutoff valve',
             100,
             'main-water-valve',
             true
         );
     }
 
-    $roomsCount = 0;
-    foreach ($a['floors'] as $f) {
-        $roomsCount += count($f['rooms']);
+    if (isset($req['gas_sensors']) && !$foundKitchen) {
+        $a['analysis_notes'][] = 'Gas detection selected but no kitchen was detected; engineering review required.';
     }
 
     if (isset($req['central_panel'])) {
-        $add($items, 'Project', 'Control', 'Central touch panel', max(1, (int)ceil(max(1, $roomsCount) / 6)), 'Central control allowance', 100, 'panel-per-six-rooms', false);
+        $add($items, 'Project', 'Control', 'Central touch panel', max(1, (int)ceil(max(1, $roomsCount) / 6)), 'Selected central panel system: preliminary allowance of one panel per six rooms', 100, 'panel-per-six-rooms');
     }
     if (isset($req['voice_control'])) {
-        $add($items, 'Project', 'Control', 'Voice assistant integration', 1, 'Requested voice control', 100, 'requested-feature', false);
+        $add($items, 'Project', 'Control', 'Voice assistant integration', 1, 'Selected voice-control system', 100, 'requested-feature');
     }
     if (isset($req['mobile_control'])) {
-        $add($items, 'Project', 'Control', 'Mobile app integration', 1, 'Requested mobile control', 100, 'requested-feature', false);
+        $add($items, 'Project', 'Control', 'Mobile app integration', 1, 'Selected mobile-control system', 100, 'requested-feature');
     }
     if (isset($req['networking'])) {
-        $add($items, 'Project', 'Networking', 'Smart-home network access point', max(1, (int)ceil(max(1, $roomsCount) / 4)), 'Preliminary coverage allowance', 70, 'ap-per-four-rooms', false);
+        $add($items, 'Project', 'Networking', 'Smart-home network access point', max(1, (int)ceil(max(1, $roomsCount) / 4)), 'Selected networking system: preliminary coverage allowance; confirm by site survey', 70, 'ap-per-four-rooms');
     }
     if (isset($req['home_assistant'])) {
-        $add($items, 'Project', 'Platform', 'Home Assistant integration', 1, 'Requested platform integration', 100, 'requested-feature', false);
+        $add($items, 'Project', 'Platform', 'Home Assistant integration', 1, 'Selected Home Assistant integration', 100, 'requested-feature');
     }
     if (isset($req['scenes'])) {
-        $add($items, 'Project', 'Automation', 'Automation scenes package', 1, 'Requested scene programming', 100, 'requested-scenes-package', false);
-    }
-
-    if (!$foundKitchen && in_array('gas_sensors', $requirements, true)) {
-        $a['analysis_notes'][] = 'Gas sensor requirement selected but no kitchen was detected; engineering review required.';
+        $add($items, 'Project', 'Automation', 'Automation scenes package', 1, 'Selected automation scenes programming', 100, 'requested-scenes-package');
     }
 
     return $items;
