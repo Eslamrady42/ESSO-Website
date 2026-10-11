@@ -625,19 +625,22 @@ function build_recommendations(array $a, array $requirements): array
                     'window-per-window'
                 );
             }
-            if (isset($req['access_control']) && $doors > 0) {
-                $add(
-                    $items,
-                    $name,
-                    'Security',
-                    'Access control point',
-                    1,
-                    'Selected access control system; final door selection requires review',
-                    $confidence,
-                    'access-control-zone'
-                );
-            }
         }
+    }
+
+    // Smart locks are scoped to the main entrance, not repeated for every room door.
+    // The quantity is a preliminary allowance and must be confirmed during engineering review.
+    if (isset($req['access_control'])) {
+        $add(
+            $items,
+            'Project',
+            'Security',
+            'Smart lock - main entrance',
+            1,
+            'Preliminary allowance for one smart lock at the main entrance; confirm the actual entrance door count before final quotation',
+            70,
+            'smart-lock-main-entry'
+        );
     }
 
     if (isset($req['security'])) {
