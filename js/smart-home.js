@@ -143,7 +143,7 @@
   function requirements() {
     return `<h2>${t.requirements}</h2><p class="smart-muted">${lang === 'ar'
       ? 'الأنظمة التي تختارها هنا هي التي ستظهر توصياتها في قائمة الأجهزة والكميات. لن نضيف أجهزة تخص أنظمة غير مختارة.'
-      : 'The systems selected here determine which devices appear in the recommendation and quantity list. AI analysis instructions are managed in ESSO server configuration files.'}</p>
+      : 'The systems selected here determine which devices appear in the recommendation and quantity list. Devices from unselected systems will not be added.'}</p>
       <div class="smart-checks">${reqs.map(([k, label]) =>
         `<label class="smart-check"><input type="checkbox" value="${k}" ${state.data.requirements.includes(k) ? 'checked' : ''}> ${esc(lang === 'ar' ? (arReq[k] || label) : label)}</label>`
       ).join('')}</div>${actions(true)}`;
