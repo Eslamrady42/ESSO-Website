@@ -66,7 +66,7 @@
     temperature_sensors: 'حساسات الحرارة',
     gas_sensors: 'حساسات الغاز',
     water_leak: 'تسرب المياه',
-    voice_control: 'التحكم الصوتي',
+    voice_control: 'تحكم صوتي',
     networking: 'الشبكات'
   };
   const reqs = Object.entries({
