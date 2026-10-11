@@ -483,3 +483,31 @@
 .room-details{max-width:320px}
 @media(max-width:1100px){.viewer-grid{grid-template-columns:1fr}.viewer-panel{min-height:560px}.floor-plan-2d,.plan-svg-wrap{min-height:520px}.model-3d,#esso3dCanvas{min-height:600px}}
 @media(max-width:700px){.viewer-panel{min-height:480px}.floor-plan-2d{padding:8px}.esso-plan-svg{height:440px;min-height:380px}.plan-svg-wrap{min-height:400px}.model-3d,#esso3dCanvas{min-height:470px}.model3d-toolbar{gap:5px}.model3d-toolbar button{padding:7px 9px;font-size:11px}}
+
+
+/* Simplified customer-facing BOQ report; do not display floor plans or 3D models */
+.viewer-info { padding: 28px; }
+.viewer-info h2 { color: var(--primary-dark, #19394d); margin-bottom: 16px; }
+.viewer-stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin: 0 0 30px; }
+.viewer-stat { min-width: 0; }
+.boq-room-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(270px,1fr)); gap: 14px; }
+.boq-room-card { min-width: 0; padding: 17px; border: 1px solid #dfe6eb; border-radius: 16px; background: #fff; box-shadow: 0 5px 18px rgba(20,39,56,.045); }
+.boq-room-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid #edf1f4; }
+.boq-room-header h3 { margin: 0; font-size: 17px; color: var(--primary-dark,#18384b); }
+.boq-room-total, .boq-quantity { display: inline-flex; justify-content: center; align-items: center; white-space: nowrap; padding: 5px 9px; border-radius: 999px; background: #eef4f7; color: #28495c; font-size: 12px; font-weight: 800; }
+.boq-device-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px 10px; padding: 13px 0; border-bottom: 1px solid #edf1f4; }
+.boq-device-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.boq-device-copy { min-width: 0; }
+.boq-device-copy strong { display: block; line-height: 1.55; overflow-wrap: anywhere; }
+.boq-device-copy p { margin: 4px 0 0; color: #687783; font-size: 12px; line-height: 1.7; }
+.boq-status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.boq-status.required { background: #e8f4ed; color: #286548; }
+.boq-status.recommended { background: #f0f2f4; color: #55616a; }
+.boq-device-row .boq-status { grid-column: 1 / -1; justify-self: start; }
+.boq-number { font-weight: 800; white-space: nowrap; }
+.boq-empty, .boq-no-devices { color: #687783; line-height: 1.8; }
+.viewer-note { line-height: 1.9; }
+.viewer-review { margin-top: 20px; }
+.viewer-review li { margin: 7px 0; }
+@media(max-width:800px) { .viewer-stat-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .viewer-info { padding: 18px; } }
+@media(max-width:520px) { .viewer-stat-grid, .boq-room-grid { grid-template-columns: 1fr; } }
