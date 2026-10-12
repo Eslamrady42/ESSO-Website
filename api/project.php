@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_valid($in['csrf_token'] ?? null)) {
         fail_json('Invalid security token.', 403);
     }
-    // Saving projects is rate-limited separately from upload and AI analysis.
+    // AR: يوجد حد مستقل لمعدل حفظ المشروعات غير حدود الرفع والتحليل.
+    // EN: Saving projects is rate-limited separately from upload and AI analysis.
     if (!rate_limit('project-save:'.client_ip(), 10, 900)) {
         fail_json('Too many project submissions. Please try again later.', 429);
     }
@@ -21,12 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $project['email'] = clean_string($project['email'] ?? '', 160);
     $project['phone'] = clean_string($project['phone'] ?? '', 60);
 
-    // Server-side validation is required even when the browser form has required fields.
+    // AR: يجب التحقق من بيانات العميل على الخادم حتى لو كانت الحقول مطلوبة في المتصفح.
+    // EN: Validate customer details on the server even when browser fields are marked required.
     if ($project['name'] === '' || !valid_email($project['email']) || $project['phone'] === '') {
         fail_json('Please provide a valid name, email and phone number.', 422);
     }
 
-    // Rebuild analysis-dependent recommendations on the server instead of trusting browser-supplied BOQ values.
+    // AR: يعيد الخادم حساب التوصيات وBOQ ولا يثق في الكميات أو الأسعار المرسلة من المتصفح.
+    // EN: Rebuild recommendations and BOQ on the server instead of trusting browser-supplied values.
     $analysis = validate_analysis(is_array($in['analysis'] ?? null) ? $in['analysis'] : []);
     $requirements = clean_array($project['requirements'] ?? [], 30);
     $recommendations = build_recommendations($analysis, $requirements);
@@ -48,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         fail_json('Too many report requests. Please try again later.', 429);
     }
 
-    // New references use 32 hex characters; load_project still allows legacy 12-character links.
+    // AR: المراجع الجديدة 32 خانة Hex؛ الروابط القديمة ذات 12 خانة تظل مدعومة.
+    // EN: New references use 32 hex characters; legacy 12-character links remain supported.
     $token = clean_string($_GET['token'] ?? '', 32);
     $p = load_project(strtoupper($token));
     if (!$p) {
