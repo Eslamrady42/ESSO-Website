@@ -886,6 +886,26 @@ function create_digital_model(array $project,array $analysis,array $recs,array $
     return ['version'=>3,'project'=>['type'=>$project['project_type']??'','area_sqm'=>$project['area']??null,'floors'=>$project['floors']??null,'location'=>$project['location']??'','orientation'=>$analysis['project']['orientation']??'unknown'],'floors'=>$floorsModel,'rooms'=>$rooms,'devices'=>$devices,'boq'=>$boq,'home_assistant'=>$homeAssistant,'preview'=>['watermarked'=>true,'download_disabled'=>true,'source_files_private'=>true,'geometry_is_preliminary'=>true,'viewer_mode'=>'architectural-digital-twin']];
 }
 
+// Cross-platform safe replacement for private JSON records (rename-over-existing differs on Windows).
+function atomic_replace_file(string $temporary, string $target): bool
+{
+    if (DIRECTORY_SEPARATOR !== '\\' || !is_file($target)) {
+        return @rename($temporary, $target);
+    }
+
+    // On Windows, move the existing target aside first, then restore it if promotion fails.
+    $backup = $target.'.bak-'.bin2hex(random_bytes(6));
+    if (!@rename($target, $backup)) {
+        return false;
+    }
+    if (@rename($temporary, $target)) {
+        @unlink($backup);
+        return true;
+    }
+    @rename($backup, $target);
+    return false;
+}
+
 function save_project(array $payload): array
 {
     // Use 128-bit opaque references for new customer projects; legacy 12-hex references remain readable below.
@@ -973,7 +993,7 @@ function save_project_record(array $record): bool
 
     $temporary = $target.'.tmp-'.bin2hex(random_bytes(6));
     $written = @file_put_contents($temporary, $json, LOCK_EX);
-    if ($written !== strlen($json) || !@rename($temporary, $target)) {
+    if ($written !== strlen($json) || !atomic_replace_file($temporary, $target)) {
         @unlink($temporary);
         audit_log('Project record write failed for '.$token);
         return false;
