@@ -53,7 +53,8 @@ define('STORAGE_PATH',ROOT_PATH.'/storage');
 define('PROJECTS_PATH',STORAGE_PATH.'/projects');
 define('ORDERS_PATH',STORAGE_PATH.'/orders');
 define('LOGS_PATH',ROOT_PATH.'/logs');
-// Private runtime directories. Their .htaccess files deny direct HTTP access; PHP can still write to them.
+// AR: مجلدات التشغيل خاصة؛ ملفات .htaccess تمنع الوصول المباشر، بينما يستطيع PHP الكتابة إليها.
+// EN: Private runtime directories; .htaccess blocks HTTP access while PHP can still write to them.
 foreach([UPLOADS_PATH,PRIVATE_UPLOAD_PATH,RATE_LIMIT_PATH,STORAGE_PATH,PROJECTS_PATH,ORDERS_PATH,LOGS_PATH] as $dir){if(!is_dir($dir))@mkdir($dir,0750,true);}
 if(APP_ENV==='development'){error_reporting(E_ALL);ini_set('display_errors','1');}else{error_reporting(0);ini_set('display_errors','0');}
 function json_response(array $data,int $status=200):never{http_response_code($status);header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store, private');echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);exit;}
