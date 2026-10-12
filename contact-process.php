@@ -76,12 +76,12 @@ $bodyLines = [
     ($lang === 'en' ? 'Message:' : 'الرسالة:'),
     $message,
 ];
-$body = implode("\\n", $bodyLines);
+$body = implode("\n", $bodyLines);
 
 // The recipient address is fixed; the visitor email is validated before use as Reply-To.
-$headers = "From: info25.esso@gmail.com\\r\\n";
-$headers .= "Reply-To: ".$email."\\r\\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\\r\\n";
+$headers = "From: info25.esso@gmail.com\r\n";
+$headers .= "Reply-To: ".$email."\r\n";
+$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
 if (!@mail($to, $subject, $body, $headers)) {
     audit_log('Contact message mail failure.');
