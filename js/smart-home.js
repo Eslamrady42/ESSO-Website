@@ -279,11 +279,48 @@
         (lang === 'ar' ? 'جهاز' : 'devices') + '</span></div><div class="smart-room-device-list">' +
         requiredBlock + recommendedBlock + '</div></article>';
     }).join('') : '<div class="smart-info">' + esc(t.noBaq) + '</div>';
+    const formatMoney = value => {
+      if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) {
+        return lang === 'ar' ? 'يحدد لاحقًا' : 'To be confirmed';
+      }
+      const amount = Number(value).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 0 });
+      return lang === 'ar' ? amount + ' ج.م.' : 'EGP ' + amount;
+    };
+    const isPriced = item => item.unit_price !== null && item.unit_price !== undefined &&
+      item.total !== null && item.total !== undefined &&
+      Number.isFinite(Number(item.unit_price)) && Number.isFinite(Number(item.total));
+    const pricedLines = boq.filter(isPriced);
+    const unpricedLines = boq.filter(item => !isPriced(item));
+    const pricedSubtotal = pricedLines.reduce((sum, item) => sum + Number(item.total), 0);
     const boqHtml = boq.length ? boq.map(x => {
       const itemRooms = Array.isArray(x.rooms) ? x.rooms.join(lang === 'ar' ? '، ' : ', ') : (x.rooms || '—');
       const required = x.required === true || x.required === 'required';
-      return '<tr><td>' + esc(x.item || x.type || '—') + '</td><td>' + esc(x.category || '—') + '</td><td class="smart-qty-cell">' + esc(x.quantity ?? 0) + '</td><td>' + esc(itemRooms) + '</td><td><span class="smart-badge ' + (required ? '' : 'review') + '">' + (required ? t.requiredLabel : t.recommended) + '</span></td></tr>';
-    }).join('') : '<tr><td colspan="5">' + esc(t.noBaq) + '</td></tr>';
+      const unitPrice = isPriced(x) ? formatMoney(x.unit_price) : (lang === 'ar' ? 'يحدد لاحقًا' : 'Quote required');
+      const lineTotal = isPriced(x) ? formatMoney(x.total) : '—';
+      const priceNote = lang === 'ar' ? (x.price_note_ar || '') : (x.price_note_en || '');
+      return '<tr><td><strong>' + esc(x.item || x.type || '—') + (priceNote ? '<small class="smart-price-note">' + esc(priceNote) + '</small>' : '') +
+        '</td><td>' + esc(x.category || '—') + '</td><td class="smart-qty-cell">' + esc(x.quantity ?? 0) +
+        '</td><td>' + esc(itemRooms) + '</td><td class="smart-price-cell">' + unitPrice +
+        '</td><td class="smart-price-cell">' + lineTotal + '</td><td><span class="smart-badge ' + (required ? '' : 'review') + '">' +
+        (required ? t.requiredLabel : t.recommended) + '</span></td></tr>';
+    }).join('') : '<tr><td colspan="7">' + esc(t.noBaq) + '</td></tr>';
+    const unpricedNames = unpricedLines.map(item => item.item || item.type || (lang === 'ar' ? 'بند غير مسعّر' : 'Unpriced item')).join(lang === 'ar' ? '، ' : ', ');
+    const pricingSummaryHtml = boq.length ? '<section class="smart-price-summary"><h3>' +
+      (lang === 'ar' ? 'السعر المبدئي للأجهزة' : 'Preliminary Equipment Estimate') +
+      '</h3><div class="smart-price-total"><span>' +
+      (unpricedLines.length
+        ? (lang === 'ar' ? 'المجموع الجزئي للبنود المسعّرة' : 'Subtotal of priced items')
+        : (lang === 'ar' ? 'إجمالي الأجهزة المبدئي' : 'Preliminary equipment total')) +
+      '</span><strong>' + formatMoney(pricedSubtotal) + '</strong></div>' +
+      (unpricedLines.length
+        ? '<p class="smart-price-warning">' + (lang === 'ar'
+            ? 'الإجمالي لا يشمل البنود التي تحتاج إلى تحديد سعر أو موديل: ' + esc(unpricedNames) + '.'
+            : 'This subtotal excludes items that still need a confirmed model or price: ' + esc(unpricedNames) + '.') + '</p>'
+        : '') +
+      '<p class="smart-price-footnote">' + (lang === 'ar'
+        ? 'تقدير مبدئي للأجهزة حسب أسعار الكتالوج وأسعار مرجعية لبعض الموديلات. لا يشمل التركيب أو البرمجة أو التمديدات، كما أن مسار الستائر والقماش وأعمال CCTV الإضافية غير مشمولة. يعتمد السعر النهائي بعد تأكيد الموديلات ومعاينة متطلبات التنفيذ.'
+        : 'Budgetary equipment estimate using ESSO catalog prices and reference models for some items. Installation, programming and wiring are excluded; curtain tracks/fabric and additional CCTV works are also excluded. Final pricing depends on confirmed models and installation requirements.') +
+      '</p></section>' : '';
     const roomLabel = lang === 'ar' ? 'الغرف المكتشفة' : 'Rooms identified';
     const selectedSystemLabels = state.data.requirements.map(k => {
       const match = reqs.find(entry => entry[0] === k);
@@ -306,7 +343,8 @@
       '<p class="smart-muted">' + (lang === 'ar' ? 'توزيع الأجهزة مبني على الغرف التي تم التعرف عليها في المخطط المرفوع.' : 'Device distribution is based on the rooms identified in the uploaded plan.') + '</p>' +
       '<div class="smart-room-distribution">' + distributionHtml + '</div>' +
       '<h3 style="margin-top:28px">' + esc(t.boq) + '</h3>' +
-      '<div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>' + (lang === 'ar' ? 'البند' : 'Item') + '</th><th>' + (lang === 'ar' ? 'الفئة' : 'Category') + '</th><th>' + (lang === 'ar' ? 'الكمية' : 'Quantity') + '</th><th>' + (lang === 'ar' ? 'الغرف المستهدفة' : 'Rooms') + '</th><th>' + (lang === 'ar' ? 'الحالة' : 'Status') + '</th></tr></thead><tbody>' + boqHtml + '</tbody></table></div>' +
+      '<div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>' + (lang === 'ar' ? 'البند' : 'Item') + '</th><th>' + (lang === 'ar' ? 'الفئة' : 'Category') + '</th><th>' + (lang === 'ar' ? 'الكمية' : 'Quantity') + '</th><th>' + (lang === 'ar' ? 'الغرف المستهدفة' : 'Rooms') + '</th><th>' + (lang === 'ar' ? 'سعر الوحدة' : 'Unit Price') + '</th><th>' + (lang === 'ar' ? 'الإجمالي' : 'Line Total') + '</th><th>' + (lang === 'ar' ? 'الحالة' : 'Status') + '</th></tr></thead><tbody>' + boqHtml + '</tbody></table></div>' +
+      pricingSummaryHtml +
       '<div class="smart-info smart-boq-note" style="margin-top:22px"><strong>' + esc(t.geometry) + '</strong><p>' + esc(t.preliminary) + '</p></div>' +
       (token ? '<div class="smart-field"><label for="requestNotes">' + esc(t.notes) + '</label><textarea id="requestNotes" placeholder="' + (lang === 'ar' ? 'أي تفضيلات أو ملاحظات إضافية...' : 'Any extra preferences or notes...') + '"></textarea></div><div class="smart-actions"><button type="button" class="smart-btn accent" id="submitBtn">' + esc(t.send) + '</button></div>' : '<div class="smart-actions"><button type="button" class="smart-btn secondary" id="backBtn">' + esc(t.retry) + '</button></div>');
   }
