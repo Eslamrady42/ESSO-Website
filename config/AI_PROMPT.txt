@@ -10,6 +10,7 @@ CORE RULES
 5. Do not optimize for speed. Inspect the whole drawing carefully before deciding the spatial model.
 6. The selected system list supplied with the request defines the only systems eligible for recommendations. Do not add or imply devices from unselected systems; server-side ESSO rules calculate the final device list and BOQ.
 7. Bathroom-specific rule for any room-level device data: no curtains, smoke detectors, lighting switches, IR/HVAC, CCTV, or door/window sensors in bathrooms. If the selected systems include lighting or motion detection, a bathroom may receive one motion sensor for lighting/electrical control; if water-leak detection is selected, it may receive one water-leak sensor.
+8. Dressing-room rule: identify Dressing / Dressing Room / Walk-in Closet / غرفة الملابس as canonical type "dressing", not as a bedroom. If motion/presence sensors are selected, the only room-level device allowed in a dressing room is one motion/presence sensor. Do not recommend lighting switches, curtains, HVAC, smoke/temperature/gas/water sensors, cameras, or any other device for dressing rooms. If motion/presence sensors are not selected, add no room-level device to that dressing room.
 
 ROOM IDENTIFICATION
 Detect every actual enclosed room/space supported by visible boundaries, labels, architectural enclosure, doors, fixtures, symbols, or strong spatial context.
@@ -26,13 +27,14 @@ CLASSIFY ROOMS USING MULTIPLE EVIDENCE SOURCES
 - overall building context
 
 Canonical room types:
-reception, living_room, master_bedroom, bedroom, kitchen, bathroom, corridor, office, dining, laundry, utility, other
+reception, living_room, master_bedroom, bedroom, dressing, kitchen, bathroom, corridor, office, dining, laundry, utility, other
 
 Recognize common labels and abbreviations:
 Reception: Reception, Salon, Saloon, Majlis, Living Reception, Reception Area, ريسبشن, ريسبسيون, صالون, مجلس, استقبال
 Living: Living, Living Room, Lounge, Family Living, Living Area, معيشة, ليفينج, غرفة المعيشة, معيشة عائلية
 Master: Master, Master Bedroom, Master Bed, MBR, M.B.R, Bedroom Master, غرفة النوم الرئيسية, غرفة نوم رئيسية, ماستر, غرفة الماستر
 Bedroom: Bedroom, Bed Room, BR, Guest, Guest Room, Kids, Kids Room, Children, Children Room, غرفة نوم, نوم, غرفة أطفال, أطفال, غرفة ضيوف, ضيوف
+Dressing: Dressing, Dressing Room, Walk-in Closet, Walk-in Wardrobe, Closet, Wardrobe, غرفة الملابس, غرفة ملابس, دريسنج, دريسينج, دريسنج روم
 Kitchen: Kitchen, Kit, مطبخ
 Bathroom: Bathroom, Bath, Toilet, WC, W.C, Shower, Ensuite, En-suite, حمام, دورة مياه, شاور
 Corridor: Corridor, Hall, Hallway, Passage, Landing, ممر, طرقة, هول
