@@ -21,6 +21,7 @@
     <i class="fas fa-check-circle" aria-hidden="true"></i>
     <h1>Thank You for Your Order!</h1>
     <p>Your request has been received successfully. Our team will contact you shortly to confirm the details.</p>
+<p id="order-reference" hidden style="font-weight:700" aria-live="polite"></p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><a href="index_en.html" class="btn-home">Back to Home</a><a href="thank-you.html" class="btn btn-outline">العربية</a></div>
 </section>
 
@@ -34,5 +35,14 @@
 </footer>
 <script>localStorage.removeItem('cart');</script>
 <script src="js/main.js?v=31"></script>
+<script>
+    // Show only well-formed order references returned by the PHP order handler.
+    const orderReference = new URLSearchParams(window.location.search).get('order') || '';
+    if (/^ESSO-[A-F0-9]{12}$/.test(orderReference)) {
+        const referenceElement = document.getElementById('order-reference');
+        referenceElement.textContent = "Order reference: " + orderReference;
+        referenceElement.hidden = false;
+    }
+</script>
 </body>
 </html>
