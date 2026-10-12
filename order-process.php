@@ -173,10 +173,10 @@ foreach ($items as $item) {
 $lines[] = '';
 $lines[] = 'Grand total: EGP '.number_format($total, 2);
 $lines[] = 'Customer notes: '.$notes;
-$adminBody = implode("\\n", $lines);
-$adminHeaders = 'From: '.$adminEmail."\\r\\n"
-    .'Reply-To: '.$email."\\r\\n"
-    ."Content-Type: text/plain; charset=UTF-8\\r\\n";
+$adminBody = implode("\n", $lines);
+$adminHeaders = 'From: '.$adminEmail."\r\n"
+    .'Reply-To: '.$email."\r\n"
+    ."Content-Type: text/plain; charset=UTF-8\r\n";
 
 if (!@mail($adminEmail, $subject, $adminBody, $adminHeaders)) {
     $order['status'] = 'saved_notification_failed';
@@ -202,11 +202,11 @@ if (!write_order_record($order)) {
 
 $customerSubject = $lang === 'en' ? 'Order receipt from ESSO - '.$orderId : 'تأكيد استلام طلبك من ESSO - '.$orderId;
 $customerBody = $lang === 'en'
-    ? "Hello {$name},\\n\\nESSO has received your order request. Our team will contact you to confirm availability and delivery.\\nOrder reference: {$orderId}\\nOrder total: EGP ".number_format($total, 2)."\\n\\nESSO Team"
-    : "أهلًا {$name}،\\n\\nاستلمت ESSO طلبك المبدئي. سيتواصل معك الفريق لتأكيد التوفر والتوصيل.\\nرقم الطلب: {$orderId}\\nإجمالي الطلب المبدئي: ".number_format($total, 2)." جنيه مصري\\n\\nفريق ESSO";
-$customerHeaders = 'From: '.$adminEmail."\\r\\n"
-    .'Reply-To: '.$adminEmail."\\r\\n"
-    ."Content-Type: text/plain; charset=UTF-8\\r\\n";
+    ? "Hello {$name},\n\nESSO has received your order request. Our team will contact you to confirm availability and delivery.\nOrder reference: {$orderId}\nOrder total: EGP ".number_format($total, 2)."\n\nESSO Team"
+    : "أهلًا {$name}،\n\nاستلمت ESSO طلبك المبدئي. سيتواصل معك الفريق لتأكيد التوفر والتوصيل.\nرقم الطلب: {$orderId}\nإجمالي الطلب المبدئي: ".number_format($total, 2)." جنيه مصري\n\nفريق ESSO";
+$customerHeaders = 'From: '.$adminEmail."\r\n"
+    .'Reply-To: '.$adminEmail."\r\n"
+    ."Content-Type: text/plain; charset=UTF-8\r\n";
 $customerMailSent = @mail($email, $customerSubject, $customerBody, $customerHeaders);
 $order['customer_confirmation'] = $customerMailSent ? 'mail_accepted' : 'failed';
 if ($customerMailSent) {
