@@ -888,7 +888,8 @@ function create_digital_model(array $project,array $analysis,array $recs,array $
 
 function save_project(array $payload): array
 {
-    $token = strtoupper(bin2hex(random_bytes(6)));
+    // Use 128-bit opaque references for new customer projects; legacy 12-hex references remain readable below.
+    $token = strtoupper(bin2hex(random_bytes(16)));
     $record = [
         'token' => $token,
         'created_at' => gmdate('c'),
@@ -916,11 +917,21 @@ function save_project(array $payload): array
         ['version' => 1, 'at' => $record['created_at'], 'status' => 'draft'],
     ];
 
-    file_put_contents(
-        PROJECTS_PATH.'/'.$token.'.json',
-        json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-        LOCK_EX
-    );
+    // Write atomically and never report a project as saved if encoding or disk I/O fails.
+    $target = PROJECTS_PATH.'/'.$token.'.json';
+    $json = json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        audit_log('Project JSON encoding failed for '.$token);
+        fail_json('The project could not be saved. Please try again.', 500);
+    }
+    $temporary = $target.'.tmp-'.bin2hex(random_bytes(6));
+    $written = @file_put_contents($temporary, $json, LOCK_EX);
+    if ($written !== strlen($json) || !@rename($temporary, $target)) {
+        @unlink($temporary);
+        audit_log('Project storage write failed for '.$token);
+        fail_json('The project could not be saved. Please try again.', 500);
+    }
+    @chmod($target, 0640);
 
     return [
         'project_token' => $token,
@@ -931,7 +942,8 @@ function save_project(array $payload): array
 
 function load_project(string $token): ?array
 {
-    if (!preg_match('/^[A-F0-9]{12}$/', $token)) {
+    // Accept earlier 12-character links while new projects use 32-character references.
+    if (!preg_match('/^(?:[A-F0-9]{12}|[A-F0-9]{32})$/', $token)) {
         return null;
     }
 
@@ -946,9 +958,27 @@ function load_project(string $token): ?array
 
 function save_project_record(array $record): bool
 {
-    return file_put_contents(
-        PROJECTS_PATH.'/'.$record['token'].'.json',
-        json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-        LOCK_EX
-    ) !== false;
+    // Atomic replacement prevents a failed write from leaving a truncated project JSON file.
+    $token = (string)($record['token'] ?? '');
+    if (!preg_match('/^(?:[A-F0-9]{12}|[A-F0-9]{32})$/', $token)) {
+        return false;
+    }
+
+    $target = PROJECTS_PATH.'/'.$token.'.json';
+    $json = json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        audit_log('Project record JSON encoding failed for '.$token);
+        return false;
+    }
+
+    $temporary = $target.'.tmp-'.bin2hex(random_bytes(6));
+    $written = @file_put_contents($temporary, $json, LOCK_EX);
+    if ($written !== strlen($json) || !@rename($temporary, $target)) {
+        @unlink($temporary);
+        audit_log('Project record write failed for '.$token);
+        return false;
+    }
+
+    @chmod($target, 0640);
+    return true;
 }
