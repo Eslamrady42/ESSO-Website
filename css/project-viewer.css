@@ -511,3 +511,12 @@
 .viewer-review li { margin: 7px 0; }
 @media(max-width:800px) { .viewer-stat-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .viewer-info { padding: 18px; } }
 @media(max-width:520px) { .viewer-stat-grid, .boq-room-grid { grid-template-columns: 1fr; } }
+
+.viewer-price-summary { margin-top: 22px; border: 1px solid #dbe6eb; border-radius: 14px; padding: 18px; background: #f6fafb; }
+.viewer-price-summary h2 { margin: 0 0 14px; }
+.viewer-price-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.viewer-price-total span { color: #405564; font-weight: 700; }
+.viewer-price-total strong { font-size: clamp(24px, 4vw, 34px); color: #123d53; font-variant-numeric: tabular-nums; }
+.viewer-price-footnote, .viewer-price-warning { margin: 12px 0 0; font-size: 13px; line-height: 1.8; color: #63727d; }
+.viewer-price-warning { color: #7b4d10; font-weight: 700; }
+.viewer-price-note { display: block; margin-top: 4px; max-width: 300px; font-size: 11px; line-height: 1.6; font-weight: 400; color: #6a7782; }
