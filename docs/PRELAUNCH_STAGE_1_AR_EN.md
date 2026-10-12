@@ -26,10 +26,14 @@
 - Writes to project records are checked and use a Windows-compatible replacement routine for existing JSON files.
 - Final-design requests are not confirmed as successful if saving fails; notification failure is recorded and reported.
 
-### 4. Public health response / فحص صحة الخادم
+### 4. Contact form / نموذج التواصل
+- The Arabic and English contact forms now fetch a CSRF token before submit; the PHP handler validates fields and limits repeated sends per IP.
+- نماذج التواصل بالعربية والإنجليزية تطلب رمز CSRF قبل الإرسال، ويعيد الخادم التحقق من الحقول ويحدّ من تكرار الرسائل من عنوان الاتصال نفسه.
+
+### 5. Public health response / فحص صحة الخادم
 - `api/health.php` no longer exposes PHP version, file paths, key-file presence or provider configuration. It returns only a generic service status.
 
-### 5. PHP syntax CI / فحص صياغة PHP
+### 6. PHP syntax CI / فحص صياغة PHP
 - Added `.github/workflows/php-lint.yml`, which runs `php -l` over all PHP files on relevant pushes and pull requests.
 
 ## Local test plan / خطة الاختبار المحلي
@@ -78,4 +82,4 @@ Every file should report `No syntax errors detected`.
 ## Not yet validated / ما لم يُختبر بعد
 - Actual behavior on this specific XAMPP machine: cookies/CSRF, mail delivery, filesystem permissions and HTTP denial.
 - A full browser pass on mobile and desktop.
-- File malware scanning, contact-form abuse protection, content/privacy/legal policy pages, and remaining storefront DOM-XSS review; these are for later stages.
+- File malware scanning, advanced anti-spam/CAPTCHA, content/privacy/legal policy pages, and remaining storefront DOM-XSS review are still for later stages.
