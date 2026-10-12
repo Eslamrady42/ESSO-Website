@@ -25,7 +25,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     exit();
 }
 
-// CSRF and rate limiting make the public order endpoint harder to abuse.
+// AR: رمز CSRF وحدود المعدل يقللان إساءة استخدام نقطة إرسال الطلبات العامة.
+// EN: CSRF and rate limiting make the public order endpoint harder to abuse.
 if (!csrf_valid(isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : null)) {
     order_error($lang === 'en' ? 'Your security token expired. Refresh checkout and try again.' : 'انتهت صلاحية رمز الأمان. حدّث صفحة إتمام الطلب وحاول مرة أخرى.', 403);
 }
@@ -49,7 +50,8 @@ $payment = (string)($_POST['payment'] ?? 'cod');
 $notes = order_text($_POST['notes'] ?? '', 1000);
 $cartData = (string)($_POST['cart_data'] ?? '');
 
-// Validate on the server: browser required attributes are not security controls.
+// AR: تحقق على الخادم؛ خصائص required في المتصفح ليست وسيلة حماية.
+// EN: Validate on the server; browser required attributes are not security controls.
 if ($name === '' || $phone === '' || $address === '' || $cartData === '') {
     order_error($lang === 'en' ? 'Please complete all required fields.' : 'يرجى استكمال جميع الحقول المطلوبة.', 422);
 }
@@ -69,7 +71,8 @@ if (!is_array($submittedItems) || !$submittedItems || count($submittedItems) > 5
     order_error($lang === 'en' ? 'The cart data is invalid. Return to the cart and try again.' : 'بيانات السلة غير صحيحة. ارجع إلى السلة وحاول مرة أخرى.', 422);
 }
 
-// Load the server-side catalogue; never trust a name or price supplied by the browser.
+// AR: حمّل كتالوج الخادم، ولا تثق في اسم أو سعر يرسله المتصفح.
+// EN: Load the server-side catalogue; never trust a name or price supplied by the browser.
 $catalog = require __DIR__.'/config/shop-catalog.php';
 $quantities = [];
 foreach ($submittedItems as $entry) {
@@ -108,7 +111,8 @@ if (!$items || $total <= 0) {
     order_error($lang === 'en' ? 'The cart is empty or invalid.' : 'السلة فارغة أو غير صحيحة.', 422);
 }
 
-// Keep a private durable order record so an e-mail outage cannot silently erase the submission.
+// AR: احفظ سجلًا خاصًا للطلب حتى لا يؤدي تعطل البريد إلى فقدان الطلب بصمت.
+// EN: Keep a private durable order record so an e-mail outage cannot silently erase the submission.
 $orderId = 'ESSO-'.strtoupper(bin2hex(random_bytes(6)));
 $order = [
     'order_id' => $orderId,
@@ -151,7 +155,8 @@ if (!write_order_record($order)) {
     order_error($lang === 'en' ? 'The order could not be saved securely. Please try again or contact ESSO.' : 'تعذر حفظ الطلب بشكل آمن. حاول مرة أخرى أو تواصل مع ESSO.', 500);
 }
 
-// Assemble e-mail content only from validated customer fields and server catalogue values.
+// AR: كوّن البريد من بيانات عميل تم التحقق منها وأسعار الكتالوج المعتمدة على الخادم فقط.
+// EN: Assemble e-mail content only from validated customer fields and server catalogue values.
 $adminEmail = valid_email(ADMIN_EMAIL) ? ADMIN_EMAIL : 'info25.esso@gmail.com';
 $subject = ($lang === 'en' ? 'New ESSO order - ' : 'طلب جديد من ESSO - ').$orderId;
 $lines = [
