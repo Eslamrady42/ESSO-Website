@@ -205,6 +205,7 @@
                 <!-- نموذج الاتصال -->
                 <div class="contact-form">
                     <h3>أرسل لنا رسالة</h3>
+                    <p id="contact-status" role="status" aria-live="polite" hidden style="margin:0 0 18px;padding:12px;border-radius:8px;color:#08705c;background:#e6f7f2"></p>
                     <form action="contact-process.php" method="post">
                         <div class="form-group">
                             <input type="text" name="name" placeholder="الاسم الكامل" required>
@@ -232,6 +233,7 @@
                         </div>
                         <button type="submit" class="btn-submit">إرسال الرسالة</button>
                     <input type="hidden" name="lang" value="ar">
+                    <input type="hidden" name="csrf_token" value="">
 </form>
                 </div>
             </div>
@@ -276,6 +278,41 @@
     </footer>
 
     <script src="js/main.js?v=31"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form[action="contact-process.php"]');
+    const status = document.getElementById('contact-status');
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('success') === '1' && status) {
+        status.hidden = false;
+        status.textContent = 'تم إرسال رسالتك بنجاح. سنعاود التواصل معك.';
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (!form) return;
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        if (button) button.disabled = true;
+        try {
+            const response = await fetch('api/csrf-token.php', { credentials: 'same-origin', cache: 'no-store' });
+            const data = await response.json();
+            if (!response.ok || !data || data.success !== true || !data.csrf_token) {
+                throw new Error('CSRF token unavailable');
+            }
+            form.querySelector('input[name="csrf_token"]').value = data.csrf_token;
+            HTMLFormElement.prototype.submit.call(form);
+        } catch (_) {
+            if (button) button.disabled = false;
+            if (status) {
+                status.hidden = false;
+                status.textContent = 'تعذر تأمين النموذج. حدّث الصفحة وحاول مرة أخرى.';
+            }
+        }
+    });
+});
+</script>
 	
 
 </body>
