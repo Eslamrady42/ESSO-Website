@@ -245,7 +245,8 @@
     <script src="js/main.js?v=31"></script>
     <script>
         // وظائف صفحة إتمام الطلب
-        // Client-side convenience only; the server revalidates all order data.
+        // AR: هذا تحقق لتحسين العرض فقط؛ يعيد الخادم التحقق من بيانات الطلب كلها.
+        // EN: Client-side convenience only; the server revalidates all order data.
         function escapeCheckoutHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, ch => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -377,7 +378,8 @@
             `;
 
             // تعبئة الحقل المخفي ببيانات السلة قبل الإرسال
-                        // Send only product IDs and quantities; the PHP endpoint calculates trusted prices.
+                        // AR: أرسل معرّفات المنتجات والكميات فقط؛ PHP يحسب الأسعار المعتمدة.
+            // EN: Send only product IDs and quantities; PHP calculates trusted prices.
             document.getElementById('checkout-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const submitButton = this.querySelector('button[type="submit"]');
