@@ -708,3 +708,14 @@
     border-radius: 50%;
     background: currentColor;
 }
+
+/* Price details and preliminary equipment estimate */
+.smart-price-cell { white-space: nowrap; font-weight: 800; font-variant-numeric: tabular-nums; }
+.smart-price-note { display: block; max-width: 340px; margin-top: 5px; color: #687783; font-size: 11px; font-weight: 400; line-height: 1.65; white-space: normal; }
+.smart-price-summary { margin: 22px 0; padding: 18px; border: 1px solid #dce6eb; border-radius: 14px; background: #f5f9fb; }
+.smart-price-summary h3 { margin: 0 0 14px !important; }
+.smart-price-total { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.smart-price-total span { font-weight: 800; color: #28495c; }
+.smart-price-total strong { font-size: clamp(24px,4vw,34px); color: #153d51; font-variant-numeric: tabular-nums; }
+.smart-price-footnote, .smart-price-warning { margin: 12px 0 0; color: #687783; font-size: 13px; line-height: 1.8; }
+.smart-price-warning { color: #855310; font-weight: 700; }
