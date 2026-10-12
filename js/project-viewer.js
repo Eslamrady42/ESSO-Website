@@ -10,8 +10,7 @@
   const API = (path) => base + path.replace(/^\//, '');
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[char]);
-  const asArray = (value) => Array.isArray(value) ? value : (value ? [value] : []);
+  }[char]));
 
   async function apiJSON(path) {
     const response = await fetch(API(path), { credentials: 'same-origin', cache: 'no-store' });
@@ -139,20 +138,6 @@
       '</th><th>' + tr('Line Total', 'إجمالي البند') + '</th><th>' +
       tr('Status', 'الحالة') +
       '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
-  }
-
-  function renderReview(analysis, project) {
-    const notes = asArray(analysis.needs_review).concat(asArray(analysis.analysis_notes));
-    if (project.customer_notes) notes.push(project.customer_notes);
-    if (!notes.length) {
-      $('reviewBox').hidden = true;
-      $('reviewBox').innerHTML = '';
-      return 0;
-    }
-    $('reviewBox').hidden = false;
-    $('reviewBox').innerHTML = '<strong>' + tr('Notes for review', 'ملاحظات للمراجعة') +
-      '</strong><ul>' + notes.map((note) => '<li>' + esc(note) + '</li>').join('') + '</ul>';
-    return notes.length;
   }
 
   async function run() {
