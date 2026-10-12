@@ -34,3 +34,5 @@ jobs:
             echo "Checking ${file}"
             php -l "${file}"
           done
+      - name: Verify product catalogue consistency
+        run: php tests/check-shop-catalog.php
