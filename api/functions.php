@@ -705,6 +705,54 @@ function build_recommendations(array $a, array $requirements): array
         $add($items, 'Project', 'Automation', 'Automation scenes package', 1, 'Selected automation scenes programming', 100, 'requested-scenes-package');
     }
 
+    // If any selected recommendation requires Zigbee, include one hub and one repeater minimum.
+    // These are project-level infrastructure devices, not room-level accessories.
+    $zigbeeDeviceTypes = [
+        'zigbee 4-gang lighting switch',
+        'smart curtain motor + controller',
+        'smart curtain channel',
+        'ir hvac/remote control',
+        'smoke detector',
+        'motion / presence sensor',
+        'motion sensor for bathroom lighting control',
+        'temperature sensor',
+        'water leak sensor',
+        'gas detector',
+        'motorized gas valve',
+        'motorized main water valve',
+    ];
+    $usesZigbee = false;
+    foreach ($items as $item) {
+        if (in_array(strtolower(trim((string)($item['type'] ?? ''))), $zigbeeDeviceTypes, true)) {
+            $usesZigbee = true;
+            break;
+        }
+    }
+    if ($usesZigbee) {
+        $add(
+            $items,
+            'Project',
+            'Connectivity',
+            'Zigbee hub / gateway',
+            1,
+            'Required infrastructure for selected Zigbee devices: one hub minimum',
+            100,
+            'zigbee-hub-required',
+            true
+        );
+        $add(
+            $items,
+            'Project',
+            'Connectivity',
+            'Zigbee signal repeater',
+            1,
+            'Required infrastructure for selected Zigbee devices: one repeater minimum; final coverage may require more',
+            100,
+            'zigbee-repeater-required',
+            true
+        );
+    }
+
     return $items;
 }
 
