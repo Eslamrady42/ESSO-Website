@@ -201,6 +201,7 @@
 
                 <div class="contact-form">
                     <h3>Send Us a Message</h3>
+                    <p id="contact-status" role="status" aria-live="polite" hidden style="margin:0 0 18px;padding:12px;border-radius:8px;color:#08705c;background:#e6f7f2"></p>
                     <form action="contact-process.php" method="post">
                         <div class="form-group">
                             <input type="text" name="name" placeholder="Full Name" required>
@@ -228,6 +229,7 @@
                         </div>
                         <button type="submit" class="btn-submit">Send Message</button>
                     <input type="hidden" name="lang" value="en">
+                    <input type="hidden" name="csrf_token" value="">
 </form>
                 </div>
             </div>
@@ -272,6 +274,36 @@
     </footer>
 
     <script src="js/main.js?v=31"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form[action="contact-process.php"]');
+    const status = document.getElementById('contact-status');
+    if (new URLSearchParams(location.search).get('success') === '1' && status) {
+        status.hidden = false;
+        status.textContent = 'Your message was sent successfully. We will contact you shortly.';
+        history.replaceState({}, document.title, location.pathname);
+    }
+    if (!form) return;
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        if (button) button.disabled = true;
+        try {
+            const response = await fetch('api/csrf-token.php', { credentials: 'same-origin', cache: 'no-store' });
+            const data = await response.json();
+            if (!response.ok || !data || data.success !== true || !data.csrf_token) throw new Error('Security token unavailable');
+            form.querySelector('input[name="csrf_token"]').value = data.csrf_token;
+            HTMLFormElement.prototype.submit.call(form);
+        } catch (_) {
+            if (button) button.disabled = false;
+            if (status) {
+                status.hidden = false;
+                status.textContent = 'Could not secure the form. Refresh this page and try again.';
+            }
+        }
+    });
+});
+</script>
 	
 
 </body>
