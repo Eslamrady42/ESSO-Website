@@ -222,7 +222,6 @@
     const floors = a.floors || [];
     const rec = r.recommendations || [];
     const boq = r.boq || [];
-    const reviews = r.review_required || a.needs_review || [];
     const ai = r.ai || {};
     const token = r.project_token || '';
     const rooms = floors.reduce((n, f) => n + (f.rooms || []).length, 0);
@@ -293,28 +292,23 @@
     const selectedSystemsHtml = selectedSystemLabels.map(label => '<span class="smart-selected-system">' + esc(label) + '</span>').join('');
     const deviceLabel = lang === 'ar' ? 'إجمالي الأجهزة' : 'Total devices';
     const itemLabel = lang === 'ar' ? 'بنود BOQ' : 'BOQ line items';
-    const reviewLabel = lang === 'ar' ? 'نقاط للمراجعة' : 'Items to review';
     const statusText = ai.status === 'completed' ? (lang === 'ar' ? 'اكتمل التحليل المبدئي' : 'Preliminary analysis complete') : (ai.status === 'error' ? t.aiError : t.aiNotRun);
-    const reviewHtml = reviews.length ? '<div class="smart-info smart-review" style="margin-top:16px"><strong>' + esc(t.review) + '</strong><ul>' + reviews.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '';
-    const notes = Array.isArray(a.analysis_notes) && a.analysis_notes.length ? '<div class="smart-info" style="margin-top:16px"><strong>' + (lang === 'ar' ? 'ملاحظات على المخطط' : 'Plan Notes') + '</strong><ul>' + a.analysis_notes.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '';
     return '<h2>' + esc(t.result) + '</h2>' +
       '<p class="smart-muted">' + (lang === 'ar' ? 'راجع الأجهزة المقترحة لكل غرفة ثم جدول الكميات الإجمالي. لا يتم عرض مخطط 2D أو نموذج 3D للعميل.' : 'Review the proposed devices for each room, then the consolidated BOQ. No customer-facing 2D plan or 3D model is shown.') + '</p>' +
       '<div class="smart-result-head"><div class="smart-info"><strong>' + (lang === 'ar' ? 'حالة التحليل:' : 'Analysis status:') + '</strong> <span class="smart-badge ' + (ai.status === 'completed' ? '' : 'review') + '">' + esc(statusText) + '</span></div>' +
       ((ai.status === 'not_run' || ai.status === 'error') ? '<div class="smart-error">' + esc(t.aiNeedsKey) + '</div>' : '') + '</div>' +
       '<div class="smart-summary"><div class="smart-stat"><span>' + roomLabel + '</span><strong>' + rooms + '</strong></div>' +
       '<div class="smart-stat"><span>' + deviceLabel + '</span><strong>' + totalDevices + '</strong></div>' +
-      '<div class="smart-stat"><span>' + itemLabel + '</span><strong>' + boq.length + '</strong></div>' +
-      '<div class="smart-stat"><span>' + reviewLabel + '</span><strong>' + reviews.length + '</strong></div></div>' +
+      '<div class="smart-stat"><span>' + itemLabel + '</span><strong>' + boq.length + '</strong></div></div>' +
       '<h3 style="margin-top:24px">' + esc(t.selectedSystems) + '</h3>' +
       '<div class="smart-selected-systems">' + selectedSystemsHtml + '</div>' +
       '<h3 style="margin-top:24px">' + esc(t.devices) + '</h3>' +
-      '<p class="smart-muted">' + (lang === 'ar' ? 'التوزيع التالي مرتبط بأسماء الغرف التي تم التعرف عليها في الرسم المرفوع؛ أما نقاط التركيب النهائية فتُعتمد بعد المراجعة الهندسية.' : 'The distribution below follows room names identified in the uploaded drawing; exact installation points are confirmed after engineering review.') + '</p>' +
+      '<p class="smart-muted">' + (lang === 'ar' ? 'توزيع الأجهزة مبني على الغرف التي تم التعرف عليها في المخطط المرفوع.' : 'Device distribution is based on the rooms identified in the uploaded plan.') + '</p>' +
       '<div class="smart-room-distribution">' + distributionHtml + '</div>' +
       '<h3 style="margin-top:28px">' + esc(t.boq) + '</h3>' +
       '<div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>' + (lang === 'ar' ? 'البند' : 'Item') + '</th><th>' + (lang === 'ar' ? 'الفئة' : 'Category') + '</th><th>' + (lang === 'ar' ? 'الكمية' : 'Quantity') + '</th><th>' + (lang === 'ar' ? 'الغرف المستهدفة' : 'Rooms') + '</th><th>' + (lang === 'ar' ? 'الحالة' : 'Status') + '</th></tr></thead><tbody>' + boqHtml + '</tbody></table></div>' +
       '<div class="smart-info smart-boq-note" style="margin-top:22px"><strong>' + esc(t.geometry) + '</strong><p>' + esc(t.preliminary) + '</p></div>' +
-      reviewHtml + notes +
-      (token ? '<div class="smart-info" style="margin-top:18px">' + esc(t.saved) + '</div><div class="smart-field"><label for="requestNotes">' + esc(t.notes) + '</label><textarea id="requestNotes" placeholder="' + (lang === 'ar' ? 'أي تفضيلات أو ملاحظات إضافية...' : 'Any extra preferences or notes...') + '"></textarea></div><div class="smart-actions"><button type="button" class="smart-btn accent" id="submitBtn">' + esc(t.send) + '</button></div>' : '<div class="smart-actions"><button type="button" class="smart-btn secondary" id="backBtn">' + esc(t.retry) + '</button></div>');
+      (token ? '<div class="smart-field"><label for="requestNotes">' + esc(t.notes) + '</label><textarea id="requestNotes" placeholder="' + (lang === 'ar' ? 'أي تفضيلات أو ملاحظات إضافية...' : 'Any extra preferences or notes...') + '"></textarea></div><div class="smart-actions"><button type="button" class="smart-btn accent" id="submitBtn">' + esc(t.send) + '</button></div>' : '<div class="smart-actions"><button type="button" class="smart-btn secondary" id="backBtn">' + esc(t.retry) + '</button></div>');
   }
   function bind() {
     document.getElementById('backBtn')?.addEventListener('click', () => {
