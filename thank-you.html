@@ -66,6 +66,7 @@
         <i class="fas fa-check-circle"></i>
         <h1>شكراً لطلبك!</h1>
         <p>تم استلام طلبك بنجاح. سنتواصل معك قريباً لتأكيد التفاصيل.</p>
+<p id="order-reference" hidden style="font-weight:700" aria-live="polite"></p>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><a href="index.html" class="btn-home">العودة إلى الرئيسية</a><a href="thank-you_en.html" class="btn btn-outline">English</a></div>
     </section>
 
@@ -114,5 +115,14 @@
             el.textContent = '0';
         });
     </script>
+<script>
+    // Show only well-formed order references returned by the PHP order handler.
+    const orderReference = new URLSearchParams(window.location.search).get('order') || '';
+    if (/^ESSO-[A-F0-9]{12}$/.test(orderReference)) {
+        const referenceElement = document.getElementById('order-reference');
+        referenceElement.textContent = "رقم الطلب: " + orderReference;
+        referenceElement.hidden = false;
+    }
+</script>
 </body>
 </html>
