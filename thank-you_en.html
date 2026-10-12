@@ -20,7 +20,7 @@
 <section class="thank-you">
     <i class="fas fa-check-circle" aria-hidden="true"></i>
     <h1>Thank You for Your Order!</h1>
-    <p>Your request has been received successfully. Our team will contact you shortly to confirm the details.</p>
+    <p id="order-message" aria-live="polite">Your order request has been saved. Our team will contact you to confirm the details.</p>
 <p id="order-reference" hidden style="font-weight:700" aria-live="polite"></p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><a href="index_en.html" class="btn-home">Back to Home</a><a href="thank-you.html" class="btn btn-outline">العربية</a></div>
 </section>
@@ -36,8 +36,14 @@
 <script>localStorage.removeItem('cart');</script>
 <script src="js/main.js?v=31"></script>
 <script>
-    // Show only well-formed order references returned by the PHP order handler.
-    const orderReference = new URLSearchParams(window.location.search).get('order') || '';
+    // Show only a valid server-generated reference. Explain mail failure without a false success claim.
+    const params = new URLSearchParams(window.location.search);
+    const orderReference = params.get('order') || '';
+    const notificationFailed = params.get('notification') === 'failed';
+    if (notificationFailed) {
+        document.getElementById('order-message').textContent =
+            'Your order has been saved, but ESSO could not be notified automatically. Please contact us and quote your order reference.';
+    }
     if (/^ESSO-[A-F0-9]{12}$/.test(orderReference)) {
         const referenceElement = document.getElementById('order-reference');
         referenceElement.textContent = "Order reference: " + orderReference;
