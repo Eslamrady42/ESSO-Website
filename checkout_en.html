@@ -236,13 +236,45 @@
 		const requiredMessage = "This field is required.";
 		const emailInvalidMessage = "Please enter a valid email address.";
         // Same checkout logic as original but with English labels
+        // Client-side convenience only; the server revalidates all order data.
+        function escapeCheckoutHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
+        }
+
+        function getValidatedCheckoutCart() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('cart') || '[]');
+                if (!Array.isArray(saved)) return [];
+                return saved.map(item => {
+                    const id = Number(item && item.id);
+                    const product = products.find(p => Number(p.id) === id);
+                    const quantity = Number(item && item.quantity);
+                    if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) return null;
+                    return { id: Number(product.id), name: product.name, price: Number(product.price), quantity };
+                }).filter(Boolean);
+            } catch (_) {
+                return [];
+            }
+        }
+
+        async function fetchCheckoutCsrfToken() {
+            const response = await fetch('api/csrf-token.php', { credentials: 'same-origin', cache: 'no-store' });
+            const data = await response.json();
+            if (!response.ok || !data || data.success !== true || !data.csrf_token) {
+                throw new Error('Could not start a secure checkout session.');
+            }
+            return data.csrf_token;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             displayCheckoutPage();
             updateCartCount();
         });
 
         function displayCheckoutPage() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cart = getValidatedCheckoutCart();
             const container = document.getElementById('checkout-content');
             
             if (cart.length === 0) {
@@ -262,7 +294,7 @@
                 total += itemTotal;
                 return `
                     <div class="summary-item">
-                        <span>${item.name} × ${item.quantity}</span>
+                        <span>${escapeCheckoutHtml(item.name)} × ${item.quantity}</span>
                         <span>EGP ${itemTotal.toLocaleString()}</span>
                     </div>
                 `;
@@ -297,7 +329,6 @@
                             <label>Payment Method</label>
                             <select name="payment">
                                 <option value="cod">Cash on Delivery</option>
-                                <option value="card">Credit Card (coming soon)</option>
                                 <option value="bank">Bank Transfer</option>
                             </select>
                         </div>
@@ -308,6 +339,7 @@
                         </div>
 
                         <input type="hidden" name="cart_data" id="cart-data" value="">
+                        <input type="hidden" name="csrf_token" id="csrf-token" value="">
 						<input type="hidden" name="lang" value="en">
 
                         <button type="submit" class="place-order-btn" id="submit-btn">
@@ -317,7 +349,7 @@
 
                     <div class="secure-badge">
                         <i class="fas fa-lock"></i>
-                        <span>Your information is secure and encrypted. It will not be shared with any third party.</span>
+                        <span>Your details will be used to process your order and contact you about it.</span>
                     </div>
                 </div>
 
@@ -330,16 +362,24 @@
                         <span>Total</span>
                         <span>EGP ${total.toLocaleString()}</span>
                     </div>
-                    <div style="margin-top: 20px;">
-                        <input type="text" placeholder="Discount code (if any)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                        <button style="width: 100%; margin-top: 10px; padding: 10px; background: var(--gray); color: white; border: none; border-radius: 8px;">Apply</button>
-                    </div>
                 </div>
             `;
 
-            document.getElementById('checkout-form').addEventListener('submit', function(e) {
-                const cartData = JSON.stringify(cart);
-                document.getElementById('cart-data').value = cartData;
+                        // Send only product IDs and quantities; the PHP endpoint calculates trusted prices.
+            document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitButton = this.querySelector('button[type="submit"]');
+                if (submitButton) submitButton.disabled = true;
+                try {
+                    document.getElementById('csrf-token').value = await fetchCheckoutCsrfToken();
+                    document.getElementById('cart-data').value = JSON.stringify(
+                        cart.map(item => ({ id: item.id, quantity: item.quantity }))
+                    );
+                    HTMLFormElement.prototype.submit.call(this);
+                } catch (_) {
+                    if (submitButton) submitButton.disabled = false;
+                    alert('Could not secure checkout. Refresh the page and try again.');
+                }
             });
         }
     </script>
