@@ -112,6 +112,8 @@ function normalize_room_type(string $type, string $name = ''): string
     $v = strtolower(preg_replace('/[^a-z0-9\x{0600}-\x{06ff}]+/u',' ', $raw) ?: $raw);
     $v = preg_replace('/\s+/',' ',trim($v)) ?: trim($v);
     $map = [
+        // Dressing rooms must be identified before the broader bedroom rules.
+        'dressing'=>['dressing room','dressing','walk in closet','walk in wardrobe','walkin closet','closet','wardrobe','غرفة الملابس','غرفة ملابس','دريسنج','دريسينج','دريسنج روم'],
         'reception'=>['reception','salon','saloon','majlis','living reception','reception area','ريسبشن','ريسبسيون','صالون','مجلس','استقبال'],
         'living_room'=>['living room','living','lounge','family living','living area','معيشة','ليفينج','غرفة المعيشة','معيشة عائلية'],
         'master_bedroom'=>['master bedroom','master bed','mbr','bedroom master','master','غرفة النوم الرئيسية','غرفة نوم رئيسية','ماستر','غرفة الماستر'],
@@ -441,6 +443,25 @@ function build_recommendations(array $a, array $requirements): array
                         'Bathroom rule: one water leak sensor per bathroom',
                         $confidence,
                         'leak-per-bathroom',
+                        true
+                    );
+                }
+                continue;
+            }
+
+            // DRESSING ROOM: motion detection only, and only when the customer selected that system.
+            // Do not add switches, curtains, HVAC, smoke, temperature, gas, water, CCTV, or other devices.
+            if ($type === 'dressing') {
+                if (isset($req['motion_sensors'])) {
+                    $add(
+                        $items,
+                        $name,
+                        'Sensors',
+                        'Motion / presence sensor',
+                        1,
+                        'Dressing-room rule: motion sensor is the only room-level device allowed',
+                        $confidence,
+                        'dressing-motion-only',
                         true
                     );
                 }
