@@ -187,14 +187,15 @@ if (!@mail($adminEmail, $subject, $adminBody, $adminHeaders)) {
     $order['status'] = 'saved_notification_failed';
     $order['staff_notification'] = 'failed';
     $order['notification_failed_at'] = gmdate('c');
-    write_order_record($order);
+    if (!write_order_record($order)) {
+        audit_log('Order notification failed and status update also failed for '.$orderId);
+    }
     audit_log('Order notification mail failed for '.$orderId);
-    order_error(
-        ($lang === 'en'
-            ? 'Your order was saved with reference '.$orderId.', but we could not notify ESSO automatically. Please contact ESSO and provide this reference.'
-            : 'تم حفظ طلبك برقم '.$orderId.'، لكن تعذر إخطار ESSO تلقائيًا. تواصل معنا واذكر رقم الطلب.'),
-        503
-    );
+
+    // AR: تم حفظ الطلب بالفعل؛ اعرض مرجعه وتحذيرًا صريحًا بدل صفحة خطأ عامة.
+    // EN: The order is already stored; show its reference and a clear notification warning.
+    header('Location: '.$thankYouRedirect.'?order='.rawurlencode($orderId).'&notification=failed');
+    exit();
 }
 
 // PHP accepting the staff e-mail is not a delivery guarantee; a customer confirmation is best-effort.
