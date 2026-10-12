@@ -106,4 +106,16 @@ return [
         'note_ar' => 'سعر استرشادي لنقطة وصول TP-Link EAP225؛ الكابلات والسويتش وملحقات PoE والتركيب غير مشمولة.',
         'note_en' => 'Indicative price for TP-Link EAP225 access point; cabling, switch, PoE accessories and installation are excluded.',
     ],
+    'zigbee hub / gateway' => [
+        'unit_price' => 3870,
+        'reference' => 'ESSO catalog SKU ZHUB — wired Zigbee 3.0 gateway, up to 80 devices',
+        'note_ar' => 'سعر كتالوج ESSO — بوابة Zigbee سلكية تدعم حتى 80 جهازًا وفق مواصفات المنتج؛ التركيب والإعداد غير مشمولين.',
+        'note_en' => 'ESSO catalog price — wired Zigbee 3.0 gateway rated for up to 80 devices per product specs; setup and installation excluded.',
+    ],
+    'zigbee signal repeater' => [
+        'unit_price' => 1430,
+        'reference' => 'ESSO catalog SKU ZZJ-R02 — Zigbee signal repeater',
+        'note_ar' => 'سعر كتالوج ESSO — مقوّي إشارة Zigbee؛ مكان التركيب والعدد الإضافي يعتمدان على تغطية الموقع.',
+        'note_en' => 'ESSO catalog price — Zigbee signal repeater; placement and any additional units depend on site coverage.',
+    ],
 ];
