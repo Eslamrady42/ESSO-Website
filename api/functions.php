@@ -886,7 +886,8 @@ function create_digital_model(array $project,array $analysis,array $recs,array $
     return ['version'=>3,'project'=>['type'=>$project['project_type']??'','area_sqm'=>$project['area']??null,'floors'=>$project['floors']??null,'location'=>$project['location']??'','orientation'=>$analysis['project']['orientation']??'unknown'],'floors'=>$floorsModel,'rooms'=>$rooms,'devices'=>$devices,'boq'=>$boq,'home_assistant'=>$homeAssistant,'preview'=>['watermarked'=>true,'download_disabled'=>true,'source_files_private'=>true,'geometry_is_preliminary'=>true,'viewer_mode'=>'architectural-digital-twin']];
 }
 
-// Cross-platform safe replacement for private JSON records (rename-over-existing differs on Windows).
+// AR: استبدال آمن لملفات JSON الخاصة، مع مراعاة اختلاف rename عند استبدال ملف موجود على Windows.
+// EN: Cross-platform safe replacement for private JSON records; replacing existing files differs on Windows.
 function atomic_replace_file(string $temporary, string $target): bool
 {
     if (DIRECTORY_SEPARATOR !== '\\' || !is_file($target)) {
@@ -908,7 +909,8 @@ function atomic_replace_file(string $temporary, string $target): bool
 
 function save_project(array $payload): array
 {
-    // Use 128-bit opaque references for new customer projects; legacy 12-hex references remain readable below.
+    // AR: المراجع الجديدة للمشروعات تستخدم 128 بت عشوائية؛ الروابط القديمة ذات 12 خانة تظل قابلة للقراءة.
+// EN: New projects use 128-bit opaque references; legacy 12-hex references remain readable below.
     $token = strtoupper(bin2hex(random_bytes(16)));
     $record = [
         'token' => $token,
@@ -937,7 +939,8 @@ function save_project(array $payload): array
         ['version' => 1, 'at' => $record['created_at'], 'status' => 'draft'],
     ];
 
-    // Write atomically and never report a project as saved if encoding or disk I/O fails.
+    // AR: احفظ المشروع بطريقة آمنة، ولا تُرجع نجاحًا إذا فشل الترميز أو الكتابة على القرص.
+// EN: Write the project safely and never report success if encoding or disk I/O fails.
     $target = PROJECTS_PATH.'/'.$token.'.json';
     $json = json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($json === false) {
