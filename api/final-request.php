@@ -23,7 +23,8 @@ if (!$project) {
     fail_json('Project not found.', 404);
 }
 
-// Save the request before notifying the team. Never confirm success if persistence failed.
+// AR: احفظ طلب التصميم أولًا، ولا تُعلن نجاحه إذا فشل الحفظ.
+// EN: Save the request before notifying the team; never confirm success if persistence failed.
 $project['status'] = 'conversion_requested';
 $project['conversion_request_at'] = gmdate('c');
 $project['customer_notes'] = clean_string($input['notes'] ?? '', 1000);
@@ -53,7 +54,8 @@ $headers = 'From: '.ADMIN_EMAIL."\r\n"
     ."Content-Type: text/plain; charset=UTF-8\r\n";
 
 if (!@mail(ADMIN_EMAIL, $subject, $body, $headers)) {
-    // The request is saved, but the team was not notified automatically.
+    // AR: الطلب محفوظ لكن إشعار الفريق لم يُرسل تلقائيًا.
+    // EN: The request is saved, but the team was not notified automatically.
     $project['notification_status'] = 'failed';
     $project['notification_failed_at'] = gmdate('c');
     save_project_record($project);
