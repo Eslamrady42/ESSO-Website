@@ -37,15 +37,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         fail_json('Project not found.', 404);
     }
 
+    // Recalculate the customer-facing device list and prices using the current
+    // server-side rules, so older saved projects also show the latest BOQ prices.
+    $analysis = validate_analysis((array)($p['analysis'] ?? []));
+    $requirements = clean_array($p['requirements'] ?? ($p['project']['requirements'] ?? []), 30);
+    $recommendations = build_recommendations($analysis, $requirements);
+    $boq = build_boq($recommendations);
+    $model = is_array($p['digital_model'] ?? null) ? $p['digital_model'] : [];
+    $model['devices'] = $recommendations;
+    $model['boq'] = $boq;
+
     json_response([
         'success' => true,
         'project' => [
             'token' => $p['token'],
             'created_at' => $p['created_at'],
             'status' => $p['status'],
-            'analysis' => $p['analysis'],
-            'digital_model' => $p['digital_model'],
-            'review_required' => $p['analysis']['needs_review'] ?? [],
+            'analysis' => $analysis,
+            'digital_model' => $model,
+            'review_required' => $analysis['needs_review'] ?? [],
         ],
     ]);
 }
