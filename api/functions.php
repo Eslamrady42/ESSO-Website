@@ -487,44 +487,34 @@ function build_recommendations(array $a, array $requirements): array
                 );
             }
 
-            // CURTAINS: only when selected, only when windows were detected.
+            // CURTAINS: a preliminary opening allowance includes a motor and control switch.
+            // Track length, fabric and installation are excluded because dimensions/materials are not yet confirmed.
             if (isset($req['curtains']) && $windows > 0) {
                 $add(
                     $items,
                     $name,
                     'Curtains',
-                    'Smart curtain channel',
+                    'Smart curtain motor + controller',
                     $windows,
-                    'Selected curtains system: one channel per detected window',
+                    'Selected curtains system: one motor and control switch allowance per detected window; track length to be confirmed',
                     $confidence,
-                    'curtain-per-window'
+                    'curtain-motor-controller-per-window'
                 );
             }
 
-            // HVAC: recommendations appear only when HVAC was selected.
-            if (isset($req['hvac'])) {
+            // HVAC: one preliminary IR control allowance per habitable room or kitchen.
+            // Do not create a second generic interface line for the same room.
+            if (isset($req['hvac']) && (room_is_habitable($type) || $type === 'kitchen')) {
                 $add(
                     $items,
                     $name,
-                    'HVAC',
-                    'HVAC control interface',
+                    'Comfort',
+                    'IR HVAC/Remote control',
                     1,
-                    'Selected HVAC system: one control interface allowance for this room',
+                    'Selected HVAC system: one compatible IR controller allowance for this room',
                     $confidence,
-                    'hvac-per-room'
+                    'ir-per-room'
                 );
-                if (room_is_habitable($type)) {
-                    $add(
-                        $items,
-                        $name,
-                        'Comfort',
-                        'IR HVAC/Remote control',
-                        1,
-                        'Selected HVAC system: IR control for compatible room equipment',
-                        $confidence,
-                        'ir-per-habitable-room'
-                    );
-                }
             }
 
             // FIRE/SMOKE: shown only when smoke detection is selected.
@@ -721,25 +711,42 @@ function build_recommendations(array $a, array $requirements): array
 function build_boq(array $recommendations): array
 {
     $boq = [];
+    $pricingCatalog = require __DIR__.'/../config/boq-pricing.php';
+    if (!is_array($pricingCatalog)) {
+        $pricingCatalog = [];
+    }
 
     foreach ($recommendations as $i) {
-        $key = strtolower($i['category'].'|'.$i['type']);
+        $itemType = clean_string($i['type'] ?? $i['item'] ?? 'Smart device', 160);
+        $category = clean_string($i['category'] ?? 'General', 100);
+        $key = strtolower($category.'|'.$itemType);
+        $priceKey = strtolower(trim($itemType));
+        $price = $pricingCatalog[$priceKey] ?? null;
+        $unitPrice = is_array($price) && is_numeric($price['unit_price'] ?? null)
+            ? (float)$price['unit_price']
+            : null;
+
         if (!isset($boq[$key])) {
             $boq[$key] = [
-                'category' => $i['category'],
-                'item' => $i['type'],
+                'category' => $category,
+                'item' => $itemType,
                 'quantity' => 0,
-                'unit_price' => null,
+                'unit_price' => $unitPrice,
                 'total' => null,
+                'currency' => 'EGP',
+                'price_status' => $unitPrice === null ? 'quote_required' : 'priced',
+                'price_reference' => is_array($price) ? clean_string($price['reference'] ?? '', 240) : '',
+                'price_note_ar' => is_array($price) ? clean_string($price['note_ar'] ?? '', 500) : 'السعر غير محدد لهذا البند بعد.',
+                'price_note_en' => is_array($price) ? clean_string($price['note_en'] ?? '', 500) : 'No preliminary unit price is configured for this item yet.',
                 'rooms' => [],
                 'required' => false,
                 'needs_review' => false,
             ];
         }
 
-        $boq[$key]['quantity'] += (int)$i['qty'];
-        if ($i['room'] !== 'Project') {
-            $boq[$key]['rooms'][] = $i['room'];
+        $boq[$key]['quantity'] += max(0, (int)($i['qty'] ?? 0));
+        if (($i['room'] ?? 'Project') !== 'Project') {
+            $boq[$key]['rooms'][] = clean_string($i['room'], 120);
         }
         if (($i['confidence'] ?? 0) < 75) {
             $boq[$key]['needs_review'] = true;
@@ -751,6 +758,9 @@ function build_boq(array $recommendations): array
 
     foreach ($boq as &$r) {
         $r['rooms'] = array_values(array_unique($r['rooms']));
+        $r['total'] = $r['unit_price'] === null
+            ? null
+            : round($r['quantity'] * $r['unit_price'], 2);
     }
     unset($r);
 
