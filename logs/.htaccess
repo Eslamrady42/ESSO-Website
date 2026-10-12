@@ -1,2 +1,4 @@
+# ESSO private runtime data — direct HTTP access must never expose customer files.
+# بيانات التشغيل الخاصة — يمنع الوصول المباشر عبر الويب.
 Options -Indexes
 Require all denied
