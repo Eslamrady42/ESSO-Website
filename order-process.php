@@ -138,7 +138,7 @@ function write_order_record(array $order): bool
     }
     $temporary = $target.'.tmp-'.bin2hex(random_bytes(6));
     $written = @file_put_contents($temporary, $json, LOCK_EX);
-    if ($written !== strlen($json) || !@rename($temporary, $target)) {
+    if ($written !== strlen($json) || !atomic_replace_file($temporary, $target)) {
         @unlink($temporary);
         return false;
     }
