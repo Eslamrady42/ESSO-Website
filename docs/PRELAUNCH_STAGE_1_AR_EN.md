@@ -60,9 +60,9 @@ This is separate from the order-validation code. The warning `mail(): Failed to 
 
 1. In XAMPP Control Panel, click **Apache → Config → PHP (php.ini)**. In the `[mail function]` section, set the sendmail path (adjust only if XAMPP is installed somewhere else):
    ```ini
-   sendmail_path = "\"C:\\xampp\\sendmail\\sendmail.exe\" -t"
+   sendmail_path = "\"C:\xampp\sendmail\sendmail.exe\" -t"
    ```
-2. Open `C:\\xampp\\sendmail\\sendmail.ini` and configure the SMTP section:
+2. Open `C:\xampp\sendmail\sendmail.ini` and configure the SMTP section:
    ```ini
    smtp_server=smtp.gmail.com
    smtp_port=465
