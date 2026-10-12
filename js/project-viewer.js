@@ -75,22 +75,69 @@
     }).join('');
   }
 
+  function formatMoney(value) {
+    if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) {
+      return tr('To be confirmed', 'يحدد لاحقًا');
+    }
+    const amount = Number(value).toLocaleString(isAr ? 'ar-EG' : 'en-US', { maximumFractionDigits: 0 });
+    return isAr ? amount + ' ج.م.' : 'EGP ' + amount;
+  }
+
+  function isPriced(item) {
+    return item.unit_price !== null && item.unit_price !== undefined &&
+      item.total !== null && item.total !== undefined &&
+      Number.isFinite(Number(item.unit_price)) && Number.isFinite(Number(item.total));
+  }
+
+  function renderPricingSummary(boq) {
+    if (!boq.length) return '';
+    const priced = boq.filter(isPriced);
+    const unpriced = boq.filter(item => !isPriced(item));
+    const sum = priced.reduce((total, item) => total + Number(item.total), 0);
+    const names = unpriced.map(item => item.item || item.type || tr('Unpriced item', 'بند غير مسعّر'))
+      .join(isAr ? '، ' : ', ');
+    return '<section class="viewer-price-summary"><h2>' +
+      tr('Preliminary Equipment Estimate', 'التقدير المبدئي للأجهزة') +
+      '</h2><div class="viewer-price-total"><span>' +
+      (unpriced.length
+        ? tr('Subtotal of priced items', 'المجموع الجزئي للبنود المسعّرة')
+        : tr('Preliminary equipment total', 'إجمالي الأجهزة المبدئي')) +
+      '</span><strong>' + formatMoney(sum) + '</strong></div>' +
+      (unpriced.length ? '<p class="viewer-price-warning">' +
+        (isAr
+          ? 'الإجمالي لا يشمل البنود التي تحتاج إلى تحديد سعر أو موديل: ' + esc(names) + '.'
+          : 'This subtotal excludes items that still need a confirmed model or price: ' + esc(names) + '.') +
+        '</p>' : '') +
+      '<p class="viewer-price-footnote">' + tr(
+        'Budgetary equipment estimate using ESSO catalog prices and reference models for some items. Installation, programming and wiring are excluded; curtain tracks/fabric and additional CCTV works are also excluded. Final pricing depends on confirmed models and installation requirements.',
+        'تقدير مبدئي للأجهزة حسب أسعار كتالوج ESSO وأسعار مرجعية لبعض الموديلات. لا يشمل التركيب أو البرمجة أو التمديدات، كما أن مسار الستائر والقماش وأعمال CCTV الإضافية غير مشمولة. يعتمد السعر النهائي بعد تأكيد الموديلات ومتطلبات التنفيذ.'
+      ) + '</p></section>';
+  }
+
   function renderBOQ(boq) {
     if (!boq.length) {
       return '<p class="boq-empty">' + tr('No BOQ items were saved for this project.', 'لم يتم حفظ بنود BOQ لهذا المشروع.') + '</p>';
     }
     const rows = boq.map((item) => {
       const roomNames = Array.isArray(item.rooms) ? item.rooms.join(isAr ? '، ' : ', ') : (item.rooms || '—');
-      return '<tr><td>' + esc(item.item || item.type || '—') +
-        '</td><td>' + esc(item.category || '—') +
+      const unitPrice = isPriced(item) ? formatMoney(item.unit_price) : tr('Quote required', 'يحتاج إلى تسعير');
+      const lineTotal = isPriced(item) ? formatMoney(item.total) : '—';
+      const priceNote = isAr ? (item.price_note_ar || '') : (item.price_note_en || '');
+      return '<tr><td><strong>' + esc(item.item || item.type || '—') +
+        (priceNote ? '<small class="viewer-price-note">' + esc(priceNote) + '</small>' : '') +
+        '</strong></td><td>' + esc(item.category || '—') +
         '</td><td class="boq-number">' + esc(item.quantity ?? 0) +
         '</td><td>' + esc(roomNames) +
+        '</td><td class="boq-number">' + unitPrice +
+        '</td><td class="boq-number">' + lineTotal +
         '</td><td>' + statusPill(item.required) + '</td></tr>';
     }).join('');
     return '<div class="table-scroll"><table class="smart-table"><thead><tr><th>' +
       tr('Item', 'البند') + '</th><th>' + tr('Category', 'الفئة') +
       '</th><th>' + tr('Quantity', 'الكمية') + '</th><th>' +
-      tr('Rooms', 'الغرف') + '</th><th>' + tr('Status', 'الحالة') +
+      tr('Rooms', 'الغرف') + '</th><th>' + tr('Unit Price', 'سعر الوحدة') +
+      '</th><th>' + tr('Line Total', 'إجمالي البند') + '</th><th>' +
+      tr('Status', 'الحالة') +
       '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -118,7 +165,6 @@
       const data = await apiJSON('api/project.php?token=' + encodeURIComponent(token));
       const project = data.project || {};
       const model = project.digital_model || {};
-      const analysis = project.analysis || {};
       const rooms = Array.isArray(model.rooms) ? model.rooms : [];
       const devices = Array.isArray(model.devices) ? model.devices : [];
       const boq = Array.isArray(model.boq) ? model.boq : [];
@@ -139,7 +185,7 @@
 
       $('deviceTable').innerHTML = renderDistribution(rooms, devices);
       $('boqTable').innerHTML = renderBOQ(boq);
-      renderReview(analysis, project);
+      $('pricingSummary').innerHTML = renderPricingSummary(boq);
       $('viewerStatus').hidden = true;
       $('viewer').hidden = false;
     } catch (error) {
