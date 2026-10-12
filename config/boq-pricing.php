@@ -81,10 +81,11 @@ return [
         'note_en' => 'Indicative price for an indoor 2K Wi-Fi camera; NVR, storage, cabling and installation are excluded. Wired CCTV cameras may cost more.',
     ],
     'smart lock - main entrance' => [
-        'unit_price' => 8000,
-        'reference' => 'Indicative reference: Lzen D01 connected smart lock',
-        'note_ar' => 'سعر استرشادي لقفل ذكي متصل؛ الموديل النهائي والتوافق مع الباب والتركيب يؤثرون على السعر.',
-        'note_en' => 'Indicative price for a connected smart lock; final model, door compatibility and installation affect the price.',
+        'unit_price' => 8550,
+        'reference' => 'Indicative reference: SIB LO3f1 Wi-Fi fingerprint smart lock (Jumia Egypt)',
+        'source_url' => 'https://www.jumia.com.eg/ar/mlp-smart-key-lock/',
+        'note_ar' => 'سعر استرشادي لقفل Wi-Fi ببصمة؛ الموديل النهائي والتوافق مع الباب والتركيب يؤثرون على السعر.',
+        'note_en' => 'Indicative price for a Wi-Fi fingerprint smart lock; final model, door compatibility and installation affect the price.',
     ],
     'motorized main water valve' => [
         'unit_price' => 3400,
@@ -99,9 +100,10 @@ return [
         'note_en' => 'ESSO catalog price for Echo Pop device; integration setup and programming are excluded.',
     ],
     'smart-home network access point' => [
-        'unit_price' => 4550,
-        'reference' => 'Indicative reference: TP-Link Omada EAP225 access point',
-        'note_ar' => 'سعر استرشادي لنقطة وصول Wi-Fi؛ الكابلات والسويتش وملحقات PoE والتركيب غير مشمولة.',
-        'note_en' => 'Indicative price for a Wi-Fi access point; cabling, switch, PoE accessories and installation are excluded.',
+        'unit_price' => 3819,
+        'reference' => 'Indicative reference: TP-Link EAP225 V3 AC1350 access point (Jumia Egypt)',
+        'source_url' => 'https://www.jumia.com.eg/ar/tp-link-eap225-v3-ac1350-wireless-mu-mimo-gigabit-ceiling-mount-access-point-12403331.html',
+        'note_ar' => 'سعر استرشادي لنقطة وصول TP-Link EAP225؛ الكابلات والسويتش وملحقات PoE والتركيب غير مشمولة.',
+        'note_en' => 'Indicative price for TP-Link EAP225 access point; cabling, switch, PoE accessories and installation are excluded.',
     ],
 ];
