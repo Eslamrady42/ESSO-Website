@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 /*
+ * كتالوج الخادم المعتمد لمعالجة الطلبات.
  * Server-authoritative shop catalog for order processing.
  * Keep this catalog synchronized with js/data.js whenever product IDs, names, or prices change.
  * The browser submits IDs and quantities only; names and prices from the browser are never trusted.
