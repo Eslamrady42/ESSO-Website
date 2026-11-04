@@ -1,7 +1,9 @@
 from __future__ import annotations
 import os
 from functools import lru_cache
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from myownai.inference import LocalGenerator
 
@@ -47,3 +49,8 @@ def generate(request: GenerateRequest) -> dict[str, str]:
         return {"text": text, "model": "my-own-ai"}
     except Exception as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+# Serve the same-origin web UI when the project is run as a local application.
+frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
+if frontend_dir.is_dir():
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
