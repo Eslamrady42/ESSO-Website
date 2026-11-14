@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المخطط التفاعلي ثلاثي الأبعاد | ESSO</title>
+  <meta name="description" content="لوحة تحكم منزل ذكي ثلاثية الأبعاد من ESSO، مع عرض الغرف وحالة الإضاءة والتكييف والأمان.">
+  <link rel="canonical" href="https://www.essowebsite.com/floorplan.html">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/floorplan.css">
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index.html" class="logo" aria-label="ESSO">ESSO</a>
+      <nav aria-label="القائمة الرئيسية">
+        <ul>
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="about.html">عن الشركة</a></li>
+          <li><a href="services.html">خدماتنا</a></li>
+          <li><a href="smart-home.html">المنزل الذكي</a></li>
+          <li><a href="floorplan.html" class="active">المخطط التفاعلي</a></li>
+          <li><a href="projects.html">مشاريعنا</a></li>
+          <li><a href="shop.html">المتجر</a></li>
+          <li><a href="contact.html">اتصل بنا</a></li>
+        </ul>
+      </nav>
+      <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+        <a href="cart.html" class="cart-icon" aria-label="سلة المشتريات"><i class="fas fa-shopping-cart" aria-hidden="true"></i><span class="cart-count" id="cart-count">0</span></a>
+        <button type="button" onclick="window.location.href='floorplan_en.html'; return false;" class="btn btn-outline" aria-label="تبديل اللغة">English</button>
+        <a href="contact.html" class="btn btn-outline">طلب استشارة</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="fp-page" data-language="ar">
+    <section class="fp-hero">
+      <div>
+        <div class="fp-eyebrow"><span class="fp-eyebrow-dot"></span> ESSO SMART LIVING</div>
+        <h1>بيتك الذكي.. <span>تحت تحكمك</span></h1>
+        <p>شاهد توزيع الغرف والأجهزة في نموذج ثلاثي الأبعاد، واستكشف تجربة التحكم في الإضاءة والتكييف والستائر وأنظمة الأمان من شاشة واحدة.</p>
+      </div>
+      <div class="fp-hero-actions">
+        <span class="fp-demo-pill"><i class="fas fa-flask" aria-hidden="true"></i> وضع تجريبي ببيانات افتراضية</span>
+        <a class="fp-link-back" href="smart-home.html"><i class="fas fa-arrow-right" aria-hidden="true"></i> العودة لمصمم المنزل الذكي</a>
+      </div>
+    </section>
+
+    <section class="fp-metrics" aria-label="ملخص حالة المنزل">
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-microchip"></i></span><div><small>الأجهزة المتصلة</small><strong id="metric-devices">24</strong><em>من 26 جهاز</em></div></article>
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-lightbulb"></i></span><div><small>الإضاءة النشطة</small><strong id="metric-lights">4</strong><em>نقاط إضاءة</em></div></article>
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-bolt"></i></span><div><small>استهلاك الطاقة الآن</small><strong id="metric-power">1.28 <small>kW</small></strong><em>تقدير تجريبي</em></div></article>
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-shield-alt"></i></span><div><small>نظام الأمان</small><strong id="metric-security">مفعّل</strong><em id="metric-security-note">المنزل في الوضع الآمن</em></div></article>
+    </section>
+
+    <section class="fp-workspace">
+      <div class="fp-stage-column">
+        <div class="fp-stage-card">
+          <div class="fp-stage-toolbar">
+            <div><h2>المخطط ثلاثي الأبعاد</h2><p>اضغط على أي غرفة لعرض تفاصيلها والتحكم في أجهزتها</p></div>
+            <div class="fp-toolbar-actions">
+              <div class="fp-view-switch" role="group" aria-label="تغيير إضاءة المشهد">
+                <button type="button" class="active" data-scene="day"><i class="fas fa-sun"></i> نهار</button>
+                <button type="button" data-scene="night"><i class="fas fa-moon"></i> ليل</button>
+              </div>
+              <button type="button" class="fp-icon-btn" id="reset-camera" title="إعادة ضبط زاوية العرض" aria-label="إعادة ضبط زاوية العرض"><i class="fas fa-expand"></i></button>
+            </div>
+          </div>
+
+          <div class="fp-filter-row" role="group" aria-label="تصفية الأجهزة">
+            <button type="button" class="active" data-filter="all">الكل</button>
+            <button type="button" data-filter="lighting"><i class="fas fa-lightbulb"></i> الإضاءة</button>
+            <button type="button" data-filter="climate"><i class="fas fa-temperature-half"></i> التكييف</button>
+            <button type="button" data-filter="security"><i class="fas fa-shield-alt"></i> الأمان</button>
+          </div>
+
+          <div class="fp-viewport-wrap">
+            <div id="floorplan-canvas" class="fp-viewport" aria-label="نموذج المنزل ثلاثي الأبعاد"></div>
+            <div class="fp-canvas-status"><span class="fp-live-dot"></span><span>النموذج التفاعلي</span><span class="fp-status-divider"></span><span id="scene-status">إضاءة النهار</span></div>
+            <div class="fp-canvas-hint"><i class="fas fa-hand-pointer"></i> اسحب لتدوير النموذج · استخدم عجلة الفأرة للتقريب</div>
+            <div id="scene-fallback" class="fp-scene-fallback" hidden>تعذر تحميل عارض 3D. تأكد من اتصال الإنترنت وتفعيل WebGL في المتصفح.</div>
+          </div>
+          <div class="fp-legend">
+            <span><i class="fp-legend-dot light-on"></i> إضاءة تعمل</span>
+            <span><i class="fp-legend-dot light-off"></i> إضاءة متوقفة</span>
+            <span><i class="fp-legend-dot sensor"></i> حساس</span>
+            <span><i class="fp-legend-dot climate"></i> تكييف</span>
+          </div>
+        </div>
+
+        <div class="fp-bottom-grid">
+          <article class="fp-panel fp-events">
+            <div class="fp-panel-head"><div><h3>آخر الأحداث</h3><p>سجل تجريبي لحالة الأجهزة</p></div><span class="fp-panel-icon"><i class="fas fa-history"></i></span></div>
+            <ul id="event-list" class="fp-event-list"><li><i class="fas fa-lightbulb"></i><span>تم تشغيل إضاءة غرفة المعيشة</span><time>الآن</time></li><li><i class="fas fa-shield-alt"></i><span>نظام الأمان في وضع التفعيل</span><time>منذ 5 د</time></li><li><i class="fas fa-temperature-half"></i><span>درجة الحرارة 24° في غرفة النوم</span><time>منذ 12 د</time></li></ul>
+          </article>
+          <article class="fp-panel fp-security-panel">
+            <div class="fp-panel-head"><div><h3>حالة الأمان</h3><p>تحكم سريع في النظام</p></div><span class="fp-panel-icon"><i class="fas fa-shield-alt"></i></span></div>
+            <div class="fp-security-state"><span class="fp-security-symbol" id="security-symbol"><i class="fas fa-shield-alt"></i></span><div><strong id="security-state-title">النظام مفعّل</strong><small id="security-state-desc">جميع نقاط الحماية في وضع الاستعداد</small></div></div>
+            <button type="button" class="fp-wide-action" id="toggle-alarm"><i class="fas fa-lock"></i> إلغاء تفعيل النظام</button>
+          </article>
+        </div>
+      </div>
+
+      <aside class="fp-sidebar">
+        <section class="fp-panel fp-rooms-panel">
+          <div class="fp-panel-head"><div><h3>غرف المنزل</h3><p>اختر غرفة لاستعراض أجهزتها</p></div><span class="fp-count-badge" id="room-count">6 غرف</span></div>
+          <div id="room-list" class="fp-room-list"></div>
+        </section>
+
+        <section class="fp-panel fp-room-detail" id="room-detail">
+          <div class="fp-panel-head"><div><h3>تفاصيل الغرفة</h3><p>حالة الأجهزة والتحكم</p></div><span class="fp-detail-mark"><i class="fas fa-sliders-h"></i></span></div>
+          <div id="room-detail-content"></div>
+        </section>
+
+        <section class="fp-panel fp-weather">
+          <div class="fp-panel-head"><div><h3>الطقس داخل المنزل</h3><p>قراءات افتراضية للتوضيح</p></div><span class="fp-panel-icon"><i class="fas fa-cloud-sun"></i></span></div>
+          <div class="fp-weather-value"><strong>24°</strong><span>معتدل ومريح</span><i class="fas fa-cloud-sun"></i></div>
+          <div class="fp-weather-foot"><span><i class="fas fa-tint"></i> الرطوبة 46%</span><span><i class="fas fa-wind"></i> جودة الهواء جيدة</span></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="fp-note"><i class="fas fa-info-circle"></i><p><strong>ملاحظة:</strong> المعروض حاليًا نموذج توضيحي تفاعلي، وليس اتصالًا مباشرًا بأجهزة منزل حقيقي. عند ربط المشروع بـ Home Assistant واستلام مخطط الوحدة الفعلي، يتم تخصيص شكل الغرف والأثاث وربط كل عنصر بمعرّف الجهاز المناسب.</p></section>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-about"><h3>ESSO</h3><p>Engineering Smart Solutions Office — نقدم حلولاً هندسية ذكية ترتقي بمشاريعك إلى المستقبل.</p><div class="social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-linkedin-in"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div></div>
+      <div class="footer-links"><h4>روابط سريعة</h4><ul><li><a href="index.html">الرئيسية</a></li><li><a href="smart-home.html">المنزل الذكي</a></li><li><a href="floorplan.html">المخطط التفاعلي</a></li><li><a href="projects.html">مشاريعنا</a></li><li><a href="contact.html">اتصل بنا</a></li></ul></div>
+      <div class="footer-contact"><h4>اتصل بنا</h4><p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p><p><i class="fas fa-phone"></i> 00201095556967</p><p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p></div>
+    </div>
+    <div class="copyright"><p>© 2026 ESSO - جميع الحقوق محفوظة</p></div>
+  </footer>
+  <script src="js/main.js?v=31" defer></script>
+  <script type="module" src="js/floorplan.js"></script>
+</body>
+</html>
