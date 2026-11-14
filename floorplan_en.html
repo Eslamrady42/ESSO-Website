@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive 3D Floorplan | ESSO</title>
+  <meta name="description" content="Explore an interactive 3D smart-home floorplan dashboard by ESSO, with room, lighting, climate and security controls.">
+  <link rel="canonical" href="https://www.essowebsite.com/floorplan_en.html">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/floorplan.css">
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index_en.html" class="logo" aria-label="ESSO">ESSO</a>
+      <nav aria-label="Primary navigation">
+        <ul>
+          <li><a href="index_en.html">Home</a></li>
+          <li><a href="about_en.html">About Us</a></li>
+          <li><a href="services_en.html">Services</a></li>
+          <li><a href="smart-home_en.html">Smart Home</a></li>
+          <li><a href="floorplan_en.html" class="active">Interactive Floorplan</a></li>
+          <li><a href="projects_en.html">Projects</a></li>
+          <li><a href="shop_en.html">Shop</a></li>
+          <li><a href="contact_en.html">Contact Us</a></li>
+        </ul>
+      </nav>
+      <div class="header-cta" style="display:flex;align-items:center;gap:10px;">
+        <a href="cart_en.html" class="cart-icon" aria-label="Shopping cart"><i class="fas fa-shopping-cart" aria-hidden="true"></i><span class="cart-count" id="cart-count">0</span></a>
+        <button type="button" onclick="window.location.href='floorplan.html'; return false;" class="btn btn-outline" aria-label="Switch language">العربية</button>
+        <a href="contact_en.html" class="btn btn-outline">Request Consultation</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="fp-page" data-language="en">
+    <section class="fp-hero">
+      <div>
+        <div class="fp-eyebrow"><span class="fp-eyebrow-dot"></span> ESSO SMART LIVING</div>
+        <h1>Your home. <span>In your control.</span></h1>
+        <p>Explore your rooms and smart devices in a 3D model. Try lighting, climate, curtains and security controls from one clear dashboard.</p>
+      </div>
+      <div class="fp-hero-actions">
+        <span class="fp-demo-pill"><i class="fas fa-flask" aria-hidden="true"></i> Demo mode · Sample data</span>
+        <a class="fp-link-back" href="smart-home_en.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to Smart Home Configurator</a>
+      </div>
+    </section>
+
+    <section class="fp-metrics" aria-label="Home status summary">
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-microchip"></i></span><div><small>Connected devices</small><strong id="metric-devices">24</strong><em>of 26 devices</em></div></article>
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-lightbulb"></i></span><div><small>Active lights</small><strong id="metric-lights">4</strong><em>lighting points</em></div></article>
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-bolt"></i></span><div><small>Current power</small><strong id="metric-power">1.28 <small>kW</small></strong><em>Demo estimate</em></div></article>
+      <article class="fp-metric"><span class="fp-metric-icon"><i class="fas fa-shield-alt"></i></span><div><small>Security system</small><strong id="metric-security">Armed</strong><em id="metric-security-note">Home is in secure mode</em></div></article>
+    </section>
+
+    <section class="fp-workspace">
+      <div class="fp-stage-column">
+        <div class="fp-stage-card">
+          <div class="fp-stage-toolbar">
+            <div><h2>Interactive 3D Floorplan</h2><p>Select a room to inspect its devices and controls</p></div>
+            <div class="fp-toolbar-actions">
+              <div class="fp-view-switch" role="group" aria-label="Scene lighting">
+                <button type="button" class="active" data-scene="day"><i class="fas fa-sun"></i> Day</button>
+                <button type="button" data-scene="night"><i class="fas fa-moon"></i> Night</button>
+              </div>
+              <button type="button" class="fp-icon-btn" id="reset-camera" title="Reset camera view" aria-label="Reset camera view"><i class="fas fa-expand"></i></button>
+            </div>
+          </div>
+
+          <div class="fp-filter-row" role="group" aria-label="Filter devices">
+            <button type="button" class="active" data-filter="all">All</button>
+            <button type="button" data-filter="lighting"><i class="fas fa-lightbulb"></i> Lighting</button>
+            <button type="button" data-filter="climate"><i class="fas fa-temperature-half"></i> Climate</button>
+            <button type="button" data-filter="security"><i class="fas fa-shield-alt"></i> Security</button>
+          </div>
+
+          <div class="fp-viewport-wrap">
+            <div id="floorplan-canvas" class="fp-viewport" aria-label="3D model of the home"></div>
+            <div class="fp-canvas-status"><span class="fp-live-dot"></span><span>Interactive model</span><span class="fp-status-divider"></span><span id="scene-status">Daylight view</span></div>
+            <div class="fp-canvas-hint"><i class="fas fa-hand-pointer"></i> Drag to rotate · Scroll to zoom</div>
+            <div id="scene-fallback" class="fp-scene-fallback" hidden>Unable to load the 3D viewer. Check your internet connection and make sure WebGL is enabled in your browser.</div>
+          </div>
+          <div class="fp-legend">
+            <span><i class="fp-legend-dot light-on"></i> Light on</span>
+            <span><i class="fp-legend-dot light-off"></i> Light off</span>
+            <span><i class="fp-legend-dot sensor"></i> Sensor</span>
+            <span><i class="fp-legend-dot climate"></i> Climate</span>
+          </div>
+        </div>
+
+        <div class="fp-bottom-grid">
+          <article class="fp-panel fp-events">
+            <div class="fp-panel-head"><div><h3>Recent activity</h3><p>Sample device event history</p></div><span class="fp-panel-icon"><i class="fas fa-history"></i></span></div>
+            <ul id="event-list" class="fp-event-list"><li><i class="fas fa-lightbulb"></i><span>Living room light switched on</span><time>Now</time></li><li><i class="fas fa-shield-alt"></i><span>Security system armed</span><time>5 min ago</time></li><li><i class="fas fa-temperature-half"></i><span>Bedroom temperature is 24°</span><time>12 min ago</time></li></ul>
+          </article>
+          <article class="fp-panel fp-security-panel">
+            <div class="fp-panel-head"><div><h3>Security status</h3><p>Quick system control</p></div><span class="fp-panel-icon"><i class="fas fa-shield-alt"></i></span></div>
+            <div class="fp-security-state"><span class="fp-security-symbol" id="security-symbol"><i class="fas fa-shield-alt"></i></span><div><strong id="security-state-title">System armed</strong><small id="security-state-desc">All protection points are ready</small></div></div>
+            <button type="button" class="fp-wide-action" id="toggle-alarm"><i class="fas fa-lock"></i> Disarm security</button>
+          </article>
+        </div>
+      </div>
+
+      <aside class="fp-sidebar">
+        <section class="fp-panel fp-rooms-panel">
+          <div class="fp-panel-head"><div><h3>Rooms</h3><p>Select a room to view its devices</p></div><span class="fp-count-badge" id="room-count">6 rooms</span></div>
+          <div id="room-list" class="fp-room-list"></div>
+        </section>
+
+        <section class="fp-panel fp-room-detail" id="room-detail">
+          <div class="fp-panel-head"><div><h3>Room details</h3><p>Device status and controls</p></div><span class="fp-detail-mark"><i class="fas fa-sliders-h"></i></span></div>
+          <div id="room-detail-content"></div>
+        </section>
+
+        <section class="fp-panel fp-weather">
+          <div class="fp-panel-head"><div><h3>Indoor comfort</h3><p>Illustrative sample readings</p></div><span class="fp-panel-icon"><i class="fas fa-cloud-sun"></i></span></div>
+          <div class="fp-weather-value"><strong>24°</strong><span>Comfortable</span><i class="fas fa-cloud-sun"></i></div>
+          <div class="fp-weather-foot"><span><i class="fas fa-tint"></i> Humidity 46%</span><span><i class="fas fa-wind"></i> Air quality good</span></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="fp-note"><i class="fas fa-info-circle"></i><p><strong>Note:</strong> This is an interactive demonstration using sample data; it is not connected to a real home. Once the actual floor plan and Home Assistant connection are provided, the room geometry, furniture and device entity IDs can be customized and linked.</p></section>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-about"><h3>ESSO</h3><p>Engineering Smart Solutions Office — intelligent engineering for smarter projects.</p><div class="social"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-linkedin-in"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div></div>
+      <div class="footer-links"><h4>Quick Links</h4><ul><li><a href="index_en.html">Home</a></li><li><a href="smart-home_en.html">Smart Home</a></li><li><a href="floorplan_en.html">Interactive Floorplan</a></li><li><a href="projects_en.html">Projects</a></li><li><a href="contact_en.html">Contact Us</a></li></ul></div>
+      <div class="footer-contact"><h4>Contact Us</h4><p><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</p><p><i class="fas fa-phone"></i> 00201095556967</p><p><i class="fas fa-envelope"></i> info25.esso@gmail.com</p></div>
+    </div>
+    <div class="copyright"><p>© 2026 ESSO - All rights reserved</p></div>
+  </footer>
+  <script src="js/main.js?v=31" defer></script>
+  <script type="module" src="js/floorplan.js"></script>
+</body>
+</html>
