@@ -30,12 +30,12 @@ if (!root) {
   }[lang];
 
   const rooms = [
-    { id:'living', col:0, row:0, icon:'fa-couch', area:22, temp:24, light:true, hvac:true, curtain:true, presence:true, camera:false },
-    { id:'kitchen', col:1, row:0, icon:'fa-utensils', area:16, temp:25, light:true, hvac:false, curtain:false, presence:true, camera:false },
-    { id:'bath', col:2, row:0, icon:'fa-bath', area:7, temp:23, light:false, hvac:false, curtain:false, presence:true, camera:false },
-    { id:'master', col:0, row:1, icon:'fa-bed', area:20, temp:24, light:true, hvac:true, curtain:true, presence:true, camera:false },
-    { id:'bedroom', col:1, row:1, icon:'fa-bed', area:15, temp:23, light:false, hvac:true, curtain:true, presence:true, camera:false },
-    { id:'hall', col:2, row:1, icon:'fa-door-open', area:9, temp:24, light:true, hvac:false, curtain:false, presence:true, camera:true }
+    { id:'living', col:0, row:0, icon:'fa-couch', area:22, temp:24, light:true, hvac:true, hvacOn:true, curtain:true, curtainOpen:false, presence:true, motion:false, camera:false },
+    { id:'kitchen', col:1, row:0, icon:'fa-utensils', area:16, temp:25, light:true, hvac:false, hvacOn:false, curtain:false, curtainOpen:false, presence:true, motion:false, camera:false },
+    { id:'bath', col:2, row:0, icon:'fa-bath', area:7, temp:23, light:false, hvac:false, hvacOn:false, curtain:false, curtainOpen:false, presence:true, motion:false, camera:false },
+    { id:'master', col:0, row:1, icon:'fa-bed', area:20, temp:24, light:true, hvac:true, hvacOn:true, curtain:true, curtainOpen:false, presence:true, motion:false, camera:false },
+    { id:'bedroom', col:1, row:1, icon:'fa-bed', area:15, temp:23, light:false, hvac:true, hvacOn:false, curtain:true, curtainOpen:false, presence:true, motion:false, camera:false },
+    { id:'hall', col:2, row:1, icon:'fa-door-open', area:9, temp:24, light:true, hvac:false, hvacOn:false, curtain:false, curtainOpen:false, presence:true, motion:false, camera:true }
   ];
   const state = { selected:'living', filter:'all', scene:'day', alarm:true, events:[], sceneReady:false };
   const roomObjects = {};
@@ -75,7 +75,7 @@ if (!root) {
     }
     const tempLabel = rtl ? '°م' : '°C';
     const control = (key, icon, title, subtitle, available) => {
-      const value = !!room[key];
+      const value = key === 'hvac' ? !!room.hvacOn : key === 'curtain' ? !!room.curtainOpen : key === 'presence' ? !!room.motion : !!room[key];
       return '<div class="fp-control-row">' +
         '<div class="fp-control-label"><span class="fp-control-icon"><i class="fas ' + icon + '"></i></span><span><strong>' + title + '</strong><small>' + (available ? subtitle : labels.unavailable) + '</small></span></div>' +
         '<button type="button" class="fp-toggle" data-device="' + key + '" aria-pressed="' + (value ? 'true' : 'false') + '" aria-label="' + title + '" ' + (available ? '' : 'disabled') + '></button>' +
@@ -89,9 +89,9 @@ if (!root) {
       '</div>' +
       '<div class="fp-control-list">' +
         control('light','fa-lightbulb',labels.light,labels.lightLabel,true) +
-        control('hvac','fa-temperature-half',labels.hvac,labels.hvacLabel,room.hvac) +
-        control('curtain','fa-blinds',labels.curtain,labels.curtainLabel,room.curtain) +
-        control('presence','fa-person-walking',labels.presence,room.presence ? labels.occupied : labels.clear,room.presence) +
+        control('hvac','fa-temperature-half',labels.hvac,room.hvac ? (room.hvacOn ? labels.on : labels.off) : labels.hvacLabel,room.hvac) +
+        control('curtain','fa-window-maximize',labels.curtain,room.curtain ? (room.curtainOpen ? labels.on : labels.off) : labels.curtainLabel,room.curtain) +
+        control('presence','fa-running',labels.presence,room.presence ? (room.motion ? labels.occupied : labels.clear) : labels.sensorLabel,room.presence) +
       '</div>';
   }
 
@@ -113,7 +113,7 @@ if (!root) {
 
   function updateMetrics() {
     const lights = rooms.filter(r => r.light).length;
-    const hvac = rooms.filter(r => r.hvac && r.hvacOn !== false).length;
+    const hvac = rooms.filter(r => r.hvac && r.hvacOn).length;
     const power = (0.22 + lights * 0.09 + hvac * 0.19).toFixed(2);
     el('metric-lights').textContent = String(lights);
     el('metric-power').innerHTML = power + ' <small>kW</small>';
@@ -156,15 +156,19 @@ if (!root) {
 
   function toggleDevice(key) {
     const room = roomById(state.selected);
-    if (!room || (key !== 'light' && !room[key])) return;
-    room[key] = !room[key];
-    const on = room[key];
+    if (!room) return;
+    if (key === 'light') room.light = !room.light;
+    else if (key === 'hvac' && room.hvac) room.hvacOn = !room.hvacOn;
+    else if (key === 'curtain' && room.curtain) room.curtainOpen = !room.curtainOpen;
+    else if (key === 'presence' && room.presence) room.motion = !room.motion;
+    else return;
+    const on = key === 'light' ? room.light : key === 'hvac' ? room.hvacOn : key === 'curtain' ? room.curtainOpen : room.motion;
     let icon = 'fa-sliders-h';
     let message = '';
     if (key === 'light') { icon = 'fa-lightbulb'; message = (on ? labels.lightOn : labels.lightOff) + roomName(room); }
     if (key === 'hvac') { icon = 'fa-temperature-half'; message = (on ? labels.hvacOn : labels.hvacOff) + roomName(room); }
-    if (key === 'curtain') { icon = 'fa-blinds'; message = (on ? labels.curtainOpen : labels.curtainClose) + roomName(room); }
-    if (key === 'presence') { icon = 'fa-person-walking'; message = (on ? labels.occupied : labels.clear) + ' · ' + roomName(room); }
+    if (key === 'curtain') { icon = 'fa-window-maximize'; message = (on ? labels.curtainOpen : labels.curtainClose) + roomName(room); }
+    if (key === 'presence') { icon = 'fa-running'; message = (on ? labels.occupied : labels.clear) + ' · ' + roomName(room); }
     syncDevice(room, key);
     renderRoomList();
     renderRoomDetails();
@@ -436,8 +440,10 @@ if (!root) {
       const pickableFloors = rooms.map(room => roomObjects[room.id].floor);
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
+      let pointerDown = null;
+      renderer.domElement.addEventListener('pointerdown', event => { pointerDown = { x:event.clientX, y:event.clientY }; });
       renderer.domElement.addEventListener('pointerup', event => {
-        if (controls.state === -1) {
+        if (pointerDown && Math.hypot(event.clientX - pointerDown.x,event.clientY - pointerDown.y) < 6) {
           const rect = renderer.domElement.getBoundingClientRect();
           pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
           pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -445,6 +451,7 @@ if (!root) {
           const hits = raycaster.intersectObjects(pickableFloors,false);
           if (hits.length && hits[0].object.userData.roomId) selectRoom(hits[0].object.userData.roomId,true);
         }
+        pointerDown = null;
       });
 
       function applyScene(mode) {
